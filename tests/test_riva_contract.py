@@ -39,6 +39,11 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("offline_recognize", source)
         self.assertIn("deploy' / 'eks'", source)
         self.assertIn("CHECK_EKS_PREREQUISITES = False", source)
+        self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-riva")
+        self.assertEqual(
+            notebook["metadata"]["kernelspec"]["display_name"],
+            "Own Your Voice Riva Client",
+        )
 
     def test_eks_override_selects_only_custom_model(self):
         values = (ROOT / "deploy" / "eks" / "values-custom-rmir.yaml").read_text(
@@ -56,6 +61,9 @@ class RivaContractTests(unittest.TestCase):
             setup,
         )
         self.assertIn('c.ServerApp.root_dir = str(_workshop_root)', setup)
+        self.assertIn('RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"', setup)
+        self.assertIn('RIVA_KERNEL_NAME="own-your-voice-riva"', setup)
+        self.assertIn("nvidia-riva-client==2.26.0", setup)
 
 
 if __name__ == "__main__":
