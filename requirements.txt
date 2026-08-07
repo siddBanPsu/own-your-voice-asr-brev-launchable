@@ -1,0 +1,14 @@
+torch==2.13.0
+transformers==5.14.1
+accelerate==1.14.0
+datasets[audio]==5.0.0
+onnx==1.22.0
+tritonclient[http]==2.69.0
+jiwer==4.0.0
+librosa==0.11.0
+soundfile==0.13.1
+numpy>=2.0,<3
+pandas>=2.2,<3
+matplotlib>=3.9,<4
+ipykernel>=6.29,<7
+ipywidgets>=8.1,<9

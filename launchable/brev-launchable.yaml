@@ -1,0 +1,59 @@
+# Documentation manifest for the Brev Console Launchable builder.
+# Brev Launchables are created in the Console; this file records the exact settings.
+schema_version: 1
+name: Own Your Voice - Parakeet ASR Labs
+description: >-
+  Three single-GPU labs for Parakeet ASR: deploy and benchmark, run a
+  memory-aware domain adaptation exercise, then export to ONNX and serve with
+  NVIDIA Triton Inference Server.
+
+default_hardware:
+  provider: aws
+  instance_type: g6.2xlarge
+  gpu: 1x NVIDIA L4
+  gpu_memory_gb_reported_by_brev: 22
+  host_memory_gb: 32
+  disk_gb: 150
+  reason: Matches the AWS G6/L4 workshop target and supports every lab.
+
+validated_profiles:
+  - label: Minimum
+    gpu: NVIDIA T4 16 GB
+    host_memory_gb: 32
+    lab_profile: t4
+    notes: Lab 2 trains the CTC head only; ONNX export is slower.
+  - label: Standard
+    gpu: NVIDIA L4 22/24 GB or A10 24 GB
+    host_memory_gb: 32
+    lab_profile: l4
+    notes: Lab 2 trains the CTC head and last two encoder blocks.
+  - label: Full
+    gpu: NVIDIA A100 40/80 GB
+    host_memory_gb: 32
+    lab_profile: a100
+    notes: Lab 2 uses the full-model workshop path.
+
+software:
+  mode: VM
+  managed_jupyter: true
+  setup_script_file: launchable/setup.sh
+
+source:
+  type: public_git_repository
+  repository_url: https://github.com/siddBanPsu/own-your-voice-asr-brev-launchable
+
+network:
+  secure_links:
+    - name: jupyter
+      port: 8888
+      show_as_call_to_action: true
+  public_tcp_udp_ports: []
+
+launch_parameters:
+  - name: LAB_PROFILE
+    required: false
+    default: auto
+    allowed_values: [auto, t4, l4, a100]
+    description: Override automatic VRAM-based lab sizing only for troubleshooting.
+
+view_access: anyone_with_link

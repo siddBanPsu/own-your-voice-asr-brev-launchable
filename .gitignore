@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+artifacts/*
+!artifacts/.gitkeep
+triton/model_repository/parakeet_ctc/1/*
+!triton/model_repository/parakeet_ctc/1/.gitkeep
