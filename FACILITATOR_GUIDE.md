@@ -6,7 +6,7 @@
   settings under `launchable/`.
 - Rehearse on the default AWS L4 profile and once on the intended A100 profile.
 - Confirm attendees can see the Jupyter CTA, select the workshop kernel and
-  download the model.
+  download the model. The preflight output must report Python 3.12.
 - Ask attendees to deploy 20-30 minutes before the lab. First-run downloads
   include a roughly 2.4 GB model and the Triton container.
 - Keep one prewarmed instructor instance and one backup Launchable link.

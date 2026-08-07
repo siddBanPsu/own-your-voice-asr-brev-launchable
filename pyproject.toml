@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "own-your-voice-asr-labs"
 version = "0.1.0"
 description = "Single-GPU Parakeet ASR labs for NVIDIA Brev"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.12,<3.13"
 dependencies = []
 
 [tool.setuptools]

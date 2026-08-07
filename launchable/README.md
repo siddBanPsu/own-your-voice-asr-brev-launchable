@@ -18,6 +18,10 @@ Launchable itself is created in the Brev Console.
 9. Keep access at **Anyone with the link** for a private roadshow, preview the
    deployment page, then create the Launchable.
 
+The setup script installs a managed CPython 3.12 runtime with `uv`; it does not
+use the Ubuntu image's system Python. Both environment creation and the final
+CUDA preflight fail if the interpreter is not Python 3.12.
+
 The setup script never asks for or persists a credential. Parakeet CTC 0.6B is
 an open model. If your organization requires authenticated Hugging Face access,
 use a runtime secret manager rather than adding a token to this repository.

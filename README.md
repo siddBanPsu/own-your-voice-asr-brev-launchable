@@ -5,6 +5,10 @@ core path is credential-free and follows the event brief: deploy Parakeet,
 adapt it to domain speech, then export it to ONNX and serve it with NVIDIA
 Triton Inference Server.
 
+The repository is pinned to CPython 3.12. The Brev setup script installs its
+own managed Python 3.12 runtime with `uv`, so it does not use Ubuntu 22.04's
+older system Python.
+
 ## Lab flow
 
 | Lab | Outcome | Workshop time |
@@ -48,7 +52,8 @@ US$1.66/hour. Availability and pricing change, so check again before the event.
 The versioned builder settings are in
 [`launchable/brev-launchable.yaml`](launchable/brev-launchable.yaml); the script
 to paste into the Brev VM setup field is
-[`launchable/setup.sh`](launchable/setup.sh).
+[`launchable/setup.sh`](launchable/setup.sh). That script provisions CPython
+3.12 and fails the build if the resulting environment is not Python 3.12.
 
 ## Run on an existing Brev instance
 

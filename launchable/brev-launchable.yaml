@@ -36,6 +36,8 @@ validated_profiles:
 software:
   mode: VM
   managed_jupyter: true
+  python_version: "3.12"
+  python_manager: uv
   setup_script_file: launchable/setup.sh
 
 source:

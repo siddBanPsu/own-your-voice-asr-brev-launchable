@@ -6,6 +6,10 @@ WORKSPACE_DIR="${HOME}/workspace"
 KERNEL_NAME="own-your-voice-asr"
 KERNEL_DISPLAY_NAME="Own Your Voice ASR Labs"
 PROFILE_VALUE="${LAB_PROFILE:-auto}"
+PYTHON_VERSION="3.12"
+UV_VERSION="0.11.32"
+UV_BIN_DIR="${HOME}/.local/bin"
+UV_BIN="${UV_BIN_DIR}/uv"
 
 case "${PROFILE_VALUE}" in
   auto|t4|l4|a100) ;;
@@ -31,10 +35,10 @@ retry() {
   done
 }
 
-echo "[1/5] Checking the NVIDIA GPU"
+echo "[1/6] Checking the NVIDIA GPU"
 nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv,noheader
 
-echo "[2/5] Installing audio and system tools"
+echo "[2/6] Installing audio and system tools"
 retry sudo apt-get update -y
 retry sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
   ffmpeg \
@@ -45,12 +49,31 @@ retry sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
   git-lfs \
   build-essential
 
-echo "[3/5] Creating the workshop Python environment"
-python3 -m venv "${VENV_DIR}"
-retry "${VENV_DIR}/bin/python" -m pip install --upgrade pip setuptools wheel
+echo "[3/6] Installing uv and managed Python ${PYTHON_VERSION}"
+mkdir -p "${UV_BIN_DIR}"
+UV_INSTALLER="$(mktemp)"
+retry curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" -o "${UV_INSTALLER}"
+env UV_UNMANAGED_INSTALL="${UV_BIN_DIR}" sh "${UV_INSTALLER}"
+rm -f "${UV_INSTALLER}"
+retry "${UV_BIN}" python install "${PYTHON_VERSION}"
 
-echo "[4/5] Installing pinned lab dependencies"
-retry "${VENV_DIR}/bin/python" -m pip install \
+echo "[4/6] Creating the workshop Python ${PYTHON_VERSION} environment"
+"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}" "${VENV_DIR}"
+"${VENV_DIR}/bin/python" - <<'PY'
+import sys
+
+if sys.version_info[:2] != (3, 12):
+    raise RuntimeError(f"Python 3.12 is required; detected {sys.version.split()[0]}.")
+
+print(f"Using Python {sys.version.split()[0]}")
+PY
+retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" --upgrade \
+  pip \
+  setuptools \
+  wheel
+
+echo "[5/6] Installing pinned lab dependencies"
+retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   torch==2.13.0 \
   transformers==5.14.1 \
   accelerate==1.14.0 \
@@ -91,9 +114,14 @@ kernel["env"] = {
 kernel_path.write_text(json.dumps(kernel, indent=2) + "\n", encoding="utf-8")
 PY
 
-echo "[5/5] Verifying CUDA from the lab kernel"
+echo "[6/6] Verifying Python and CUDA from the lab kernel"
 "${VENV_DIR}/bin/python" - <<'PY'
+import sys
+
 import torch
+
+if sys.version_info[:2] != (3, 12):
+    raise RuntimeError(f"Python 3.12 is required; detected {sys.version.split()[0]}.")
 
 if not torch.cuda.is_available():
     raise RuntimeError("PyTorch cannot see the NVIDIA GPU. Check the Brev GPU and driver state.")
@@ -103,7 +131,10 @@ vram_gb = props.total_memory / 1024**3
 if vram_gb < 14:
     raise RuntimeError(f"The labs need at least 14 GB VRAM; detected {vram_gb:.1f} GB.")
 
-print(f"Ready: {props.name}, {vram_gb:.1f} GB VRAM, CUDA {torch.version.cuda}")
+print(
+    f"Ready: Python {sys.version.split()[0]}, {props.name}, "
+    f"{vram_gb:.1f} GB VRAM, CUDA {torch.version.cuda}"
+)
 PY
 
 echo

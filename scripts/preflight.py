@@ -19,6 +19,9 @@ PACKAGES = ["torch", "transformers", "datasets", "onnx", "tritonclient", "jiwer"
 
 
 def main() -> int:
+    if sys.version_info[:2] != (3, 12):
+        raise RuntimeError(f"Python 3.12 is required; detected {sys.version.split()[0]}.")
+
     import torch
 
     checks: dict[str, object] = {
