@@ -3,9 +3,9 @@
 schema_version: 1
 name: Own Your Voice - Parakeet ASR Labs
 description: >-
-  Three single-GPU labs for Parakeet ASR: deploy and benchmark, run a
-  memory-aware domain adaptation exercise, then export to ONNX and serve with
-  NVIDIA Triton Inference Server.
+  Three single-GPU labs for Parakeet ASR: deploy the supported 0.6B Speech NIM,
+  run a memory-aware domain adaptation exercise, then export to ONNX and serve
+  with NVIDIA Triton Inference Server.
 
 default_hardware:
   provider: aws
@@ -21,7 +21,7 @@ validated_profiles:
     gpu: NVIDIA T4 16 GB
     host_memory_gb: 32
     lab_profile: t4
-    notes: Lab 2 trains the CTC head only; ONNX export is slower.
+    notes: Labs 2-3 only. T4 cannot run Speech NIM because compute capability 8.0+ is required.
   - label: Standard
     gpu: NVIDIA L4 22/24 GB or A10 24 GB
     host_memory_gb: 32
@@ -39,6 +39,15 @@ software:
   python_version: "3.12"
   python_manager: uv
   setup_script_file: launchable/setup.sh
+
+speech_nim:
+  container_id: parakeet-0-6b-ctc-en-us
+  image: nvcr.io/nim/nvidia/parakeet-0-6b-ctc-en-us:latest
+  tags_selector: name=parakeet-0-6b-ctc-en-us,bs=1,mode=ofl,diarizer=disabled,vad=default
+  http_port: 9000
+  grpc_port: 50051
+  access: NVIDIA AI Enterprise license and personal NGC API key with Catalog access
+  credential_handling: Prompt in Lab 1 at runtime; never store in Launchable or repository.
 
 source:
   type: public_git_repository

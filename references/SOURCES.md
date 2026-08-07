@@ -17,7 +17,12 @@ Implementation references:
 - [NVIDIA Triton Inference Server](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html)
 - [Triton model repository format](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_repository.html)
 - [NVIDIA Speech NIM ASR model choices](https://docs.nvidia.com/nim/speech/latest/asr/)
+- [Deploy Parakeet CTC English with Speech NIM](https://docs.nvidia.com/nim/speech/latest/asr/deploy-asr-models/parakeet-ctc-en-us.html)
+- [NVIDIA ASR NIM support matrix and Parakeet 0.6B profiles](https://docs.nvidia.com/nim/speech/latest/reference/support-matrix/asr.html)
+- [Speech NIM prerequisites](https://docs.nvidia.com/nim/speech/latest/get-started/prerequisites.html)
+- [NGC access setup](https://docs.nvidia.com/nim/speech/latest/get-started/ngc-access-setup.html)
+- [Speech NIM model caching](https://docs.nvidia.com/nim/speech/latest/deployment/docker/model-caching.html)
 
-The core labs use open Parakeet weights and do not require an NGC API key. The
-production handoff explains where Speech NIM/Riva provides a supported,
-optimized serving path.
+Lab 1 uses the licensed Speech NIM container and requires NGC access. Labs 2-3
+use the open Parakeet weights for customization and ONNX/Triton learning. A
+locally customized checkpoint is not automatically a supported NIM package.

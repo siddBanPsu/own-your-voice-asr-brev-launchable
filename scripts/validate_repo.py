@@ -13,6 +13,8 @@ REQUIRED = [
     "README.md",
     "launchable/setup.sh",
     "launchable/brev-launchable.yaml",
+    "scripts/start_nim.sh",
+    "scripts/stop_nim.sh",
     "labs/00_start_here.ipynb",
     "labs/01_deploy_and_benchmark.ipynb",
     "labs/02_domain_adaptation.ipynb",
@@ -33,12 +35,21 @@ def main() -> int:
     assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
 
     setup_text = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
+    assert setup_text.startswith("#!/bin/bash\n")
     assert 'PYTHON_VERSION="3.12"' in setup_text
     assert '"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}"' in setup_text
 
     manifest_text = (ROOT / "launchable" / "brev-launchable.yaml").read_text(encoding="utf-8")
     assert "mode: VM" in manifest_text
     assert "gpu: 1x NVIDIA L4" in manifest_text
+    assert "container_id: parakeet-0-6b-ctc-en-us" in manifest_text
+    assert "bs=1,mode=ofl" in manifest_text
+
+    nim_start_text = (ROOT / "scripts" / "start_nim.sh").read_text(encoding="utf-8")
+    assert nim_start_text.startswith("#!/bin/bash\n")
+    assert "parakeet-0-6b-ctc-en-us" in nim_start_text
+    assert "bs=1,mode=ofl" in nim_start_text
+    assert "/v1/health/ready" in nim_start_text
 
     for notebook in sorted((ROOT / "labs").glob("*.ipynb")):
         payload = json.loads(notebook.read_text(encoding="utf-8"))

@@ -15,7 +15,15 @@ sys.path.insert(0, str(ROOT / "src"))
 from voice_asr_lab.profiles import detect_profile  # noqa: E402
 
 
-PACKAGES = ["torch", "transformers", "datasets", "onnx", "tritonclient", "jiwer"]
+PACKAGES = [
+    "torch",
+    "transformers",
+    "datasets",
+    "onnx",
+    "tritonclient",
+    "jiwer",
+    "requests",
+]
 
 
 def main() -> int:
@@ -36,9 +44,12 @@ def main() -> int:
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is not available in this kernel.")
     props = torch.cuda.get_device_properties(0)
+    capability = torch.cuda.get_device_capability(0)
     checks["gpu"] = props.name
     checks["vram_gb"] = round(props.total_memory / 1024**3, 1)
     checks["cuda"] = torch.version.cuda
+    checks["compute_capability"] = f"{capability[0]}.{capability[1]}"
+    checks["speech_nim_supported"] = capability[0] >= 8
     checks["profile"] = detect_profile().as_dict()
 
     if checks["nvidia_smi"]:
