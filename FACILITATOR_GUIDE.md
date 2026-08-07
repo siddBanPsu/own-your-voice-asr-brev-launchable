@@ -59,6 +59,9 @@ homogeneous GPU nodes, HTTP/2 ingress, TLS, observability, and load testing.
 - **NGC pull denied:** verify entitlement, Catalog access, and key validity.
 - **NIM/Riva port conflict:** stop the Lab 1 NIM before Lab 3; both use 50051.
 - **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
+- **Driver is too old for PyTorch:** confirm setup installed the `cu126` build
+  and that `torch.version.cuda` reports `12.6`; do not use the default CUDA 13
+  PyPI build on an image whose driver reports CUDA 12.7 capability.
 - **NeMo import fails:** confirm Python 3.12 and rerun the pinned setup script;
   do not mix the archived tutorial's NeMo 1.23 install into this environment.
 - **FLEURS download is slow:** use the instructor cache or reduce only the

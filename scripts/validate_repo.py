@@ -43,6 +43,9 @@ def main() -> int:
     setup_text = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
     assert setup_text.startswith("#!/bin/bash\n")
     assert 'PYTHON_VERSION="3.12"' in setup_text
+    assert 'TORCH_BACKEND="cu126"' in setup_text
+    assert '--torch-backend "${TORCH_BACKEND}"' in setup_text
+    assert 'torch.version.cuda != "12.6"' in setup_text
     assert '"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}"' in setup_text
     assert 'c.ServerApp.default_url = "/lab/tree/labs/00_start_here.ipynb?reset"' in setup_text
     assert 'c.ServerApp.root_dir = str(_workshop_root)' in setup_text
@@ -54,6 +57,7 @@ def main() -> int:
     manifest_text = (ROOT / "launchable" / "brev-launchable.yaml").read_text(encoding="utf-8")
     assert "mode: VM" in manifest_text
     assert "gpu: 1x NVIDIA L4" in manifest_text
+    assert "pytorch_cuda_backend: cu126" in manifest_text
     assert "container_id: parakeet-0-6b-ctc-en-us" in manifest_text
     assert "bs=1,mode=ofl" in manifest_text
     assert 'version: "2.26.0"' in manifest_text

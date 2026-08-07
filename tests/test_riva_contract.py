@@ -65,6 +65,12 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn('RIVA_KERNEL_NAME="own-your-voice-riva"', setup)
         self.assertIn("nvidia-riva-client==2.26.0", setup)
 
+    def test_setup_uses_driver_compatible_pytorch_backend(self):
+        setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
+        self.assertIn('TORCH_BACKEND="cu126"', setup)
+        self.assertIn('--torch-backend "${TORCH_BACKEND}"', setup)
+        self.assertIn('torch.version.cuda != "12.6"', setup)
+
 
 if __name__ == "__main__":
     unittest.main()

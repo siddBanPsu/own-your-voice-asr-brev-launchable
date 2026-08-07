@@ -38,6 +38,8 @@ software:
   managed_jupyter: true
   python_version: "3.12"
   python_manager: uv
+  pytorch_version: "2.13.0"
+  pytorch_cuda_backend: cu126
   setup_script_file: launchable/setup.sh
   jupyter_root_candidates:
     - ~/workspace/own-your-voice-asr-brev-launchable

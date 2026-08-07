@@ -11,6 +11,7 @@ RIVA_KERNEL_DISPLAY_NAME="Own Your Voice Riva Client"
 REPOSITORY_NAME="own-your-voice-asr-brev-launchable"
 PROFILE_VALUE="${LAB_PROFILE:-auto}"
 PYTHON_VERSION="3.12"
+TORCH_BACKEND="cu126"
 UV_VERSION="0.11.32"
 UV_BIN_DIR="${HOME}/.local/bin"
 UV_BIN="${UV_BIN_DIR}/uv"
@@ -40,7 +41,7 @@ retry() {
 }
 
 echo "[1/6] Checking the NVIDIA GPU"
-nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv,noheader
+nvidia-smi --query-gpu=name,memory.total,compute_cap,driver_version --format=csv,noheader
 
 echo "[2/6] Installing audio and system tools"
 retry sudo apt-get update -y
@@ -78,6 +79,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" --upgrade \
 
 echo "[5/6] Installing pinned lab dependencies"
 retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
+  --torch-backend "${TORCH_BACKEND}" \
   torch==2.13.0 \
   'nemo_toolkit[asr]==2.7.3' \
   'datasets[audio]==5.0.0' \
@@ -168,6 +170,11 @@ if sys.version_info[:2] != (3, 12):
 
 if not torch.cuda.is_available():
     raise RuntimeError("PyTorch cannot see the NVIDIA GPU. Check the Brev GPU and driver state.")
+
+if torch.version.cuda != "12.6":
+    raise RuntimeError(
+        f"The workshop requires the CUDA 12.6 PyTorch build; detected {torch.version.cuda}."
+    )
 
 props = torch.cuda.get_device_properties(0)
 vram_gb = props.total_memory / 1024**3

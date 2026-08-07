@@ -116,6 +116,11 @@ creates isolated NeMo and Riva client environments. This is required because
 NeMo 2.7.3 and Riva client 2.26.0 pin incompatible Protobuf versions. Fresh
 managed-Jupyter sessions open `labs/00_start_here.ipynb` directly.
 
+The NeMo environment installs the official PyTorch 2.13.0 CUDA 12.6 wheel
+explicitly (`uv --torch-backend cu126`). This remains compatible with the CUDA
+12.7-capable driver in the standard Brev image instead of allowing PyPI to
+select the default CUDA 13 build.
+
 ## Run on an existing Brev instance
 
 ```bash
