@@ -10,7 +10,8 @@ Launchable itself is created in the Brev Console.
    `setup.sh` into the setup-script field.
 5. For **Source**, select a public Git repository and enter its URL.
 6. For **Network**, expose the managed Jupyter Secure Link on port 8888 and
-   enable **Show as CTA**.
+   enable **Show as CTA**. On a fresh deployment, the setup script configures
+   that CTA to land directly on `labs/00_start_here.ipynb`.
 7. Set the default hardware to AWS `g6.2xlarge`, one L4 GPU, 32 GB RAM and
    150 GB storage. Participants may switch to a qualifying L4/A10 or a single
    A100 for the full path. A T4 is suitable only when skipping Lab 1.
@@ -22,7 +23,11 @@ The setup script installs a managed CPython 3.12 runtime with `uv`; it does not
 use the Ubuntu image's system Python. Both environment creation and the final
 CUDA preflight fail if the interpreter is not Python 3.12. The selected Brev
 image must also provide Docker with the NVIDIA Container Toolkit; Lab 0 reports
-whether Docker is available.
+whether Docker is available. The script adds a user-level Jupyter Server
+configuration that resolves the repository under `~/workspace` or directly
+under the provider's home directory and redirects `/` to Lab 0. This applies
+when managed Jupyter starts after setup; restart Jupyter once on an existing
+instance that was already running.
 
 The setup script never asks for or persists a credential. Lab 1 separately
 requires NVIDIA AI Enterprise entitlement and a personal NGC API key with
@@ -30,10 +35,17 @@ Catalog access to run the supported Parakeet CTC 0.6B Speech NIM. The notebook
 requests the key with hidden input at runtime. Do not store it in the GitHub
 repository, notebook, Launchable parameter default, or setup script.
 
+Lab 3 asks for the same class of NGC credential at runtime to pull the pinned
+Riva container. The helper scripts use a temporary Docker configuration so the
+key is not written into the attendee's long-lived Docker configuration.
+
 ## Recommended rehearsal
 
 Launch one L4 instance at least a day before the workshop and run
 `labs/00_start_here.ipynb` followed by each lab's fast path. Confirm the NIM
 entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
-confirm Lab 2 selects and saves its best validation checkpoint. Model, dataset,
-and container downloads make the first run slower than subsequent runs.
+confirm Lab 2 selects by `val_wer` and saves a complete `.nemo` checkpoint.
+Model, dataset, and container downloads make the first run slower than later
+runs. In Lab 3, confirm `riva-build` creates the RMIR, `riva-deploy` generates
+the target-GPU repository, and the Riva gRPC client returns a transcript. If
+EKS is demonstrated, prepare that cluster and model volume separately.

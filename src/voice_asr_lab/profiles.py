@@ -31,7 +31,7 @@ PROFILES: dict[str, LabProfile] = {
         train_steps=4,
         learning_rate=5e-4,
         gradient_checkpointing=False,
-        description="16 GB GPUs: CTC-head adaptation and short audio windows.",
+        description="16 GB GPUs: NeMo CTC-decoder adaptation and short audio windows.",
     ),
     "l4": LabProfile(
         name="l4",
@@ -42,7 +42,7 @@ PROFILES: dict[str, LabProfile] = {
         train_steps=8,
         learning_rate=2e-4,
         gradient_checkpointing=True,
-        description="20-32 GB GPUs: CTC head plus the last two encoder blocks.",
+        description="20-32 GB GPUs: NeMo CTC decoder plus the last two encoder blocks.",
     ),
     "a100": LabProfile(
         name="a100",
@@ -53,7 +53,7 @@ PROFILES: dict[str, LabProfile] = {
         train_steps=12,
         learning_rate=2e-5,
         gradient_checkpointing=True,
-        description="40 GB+ GPUs: full-model capacity; notebooks may choose fewer layers.",
+        description="40 GB+ GPUs: full-model capacity; the notebook keeps a conservative layer tail by default.",
     ),
 }
 

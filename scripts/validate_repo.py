@@ -4,6 +4,7 @@ from __future__ import annotations
 import compileall
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -15,11 +16,15 @@ REQUIRED = [
     "launchable/brev-launchable.yaml",
     "scripts/start_nim.sh",
     "scripts/stop_nim.sh",
+    "scripts/build_riva_rmir.sh",
+    "scripts/start_riva.sh",
+    "scripts/stop_riva.sh",
     "labs/00_start_here.ipynb",
     "labs/01_deploy_and_benchmark.ipynb",
     "labs/02_domain_adaptation.ipynb",
-    "labs/03_onnx_triton.ipynb",
-    "triton/model_repository/parakeet_ctc/config.pbtxt",
+    "labs/03_riva_deployment.ipynb",
+    "deploy/eks/README.md",
+    "deploy/eks/values-custom-rmir.yaml",
 ]
 
 
@@ -38,12 +43,19 @@ def main() -> int:
     assert setup_text.startswith("#!/bin/bash\n")
     assert 'PYTHON_VERSION="3.12"' in setup_text
     assert '"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}"' in setup_text
+    assert 'c.ServerApp.default_url = "/lab/tree/labs/00_start_here.ipynb?reset"' in setup_text
+    assert 'c.ServerApp.root_dir = str(_workshop_root)' in setup_text
+    embedded_python = re.findall(r"<<'PY'\n(.*?)\nPY", setup_text, flags=re.DOTALL)
+    assert embedded_python, "setup.sh must contain embedded Python checks"
+    for index, source in enumerate(embedded_python):
+        compile(source, f"launchable/setup.sh:python-{index}", "exec")
 
     manifest_text = (ROOT / "launchable" / "brev-launchable.yaml").read_text(encoding="utf-8")
     assert "mode: VM" in manifest_text
     assert "gpu: 1x NVIDIA L4" in manifest_text
     assert "container_id: parakeet-0-6b-ctc-en-us" in manifest_text
     assert "bs=1,mode=ofl" in manifest_text
+    assert 'version: "2.26.0"' in manifest_text
 
     nim_start_text = (ROOT / "scripts" / "start_nim.sh").read_text(encoding="utf-8")
     assert nim_start_text.startswith("#!/bin/bash\n")
@@ -68,9 +80,42 @@ def main() -> int:
         line for cell in domain_payload["cells"] for line in cell.get("source", [])
     )
     assert "LANGUAGE_CONFIG = 'nl_nl'" in domain_source
-    assert "fine_tune_with_validation" in domain_source
+    assert "nemo_asr.models.ASRModel.from_pretrained" in domain_source
+    assert "nemo_tokenizer_coverage" in domain_source
+    assert "monitor='val_wer'" in domain_source
     assert "baseline_test" in domain_source
-    assert "english_guardrail" in domain_source
+    assert "selected_english" in domain_source
+    assert "model.save_to" in domain_source
+
+    riva_payload = json.loads(
+        (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
+    )
+    riva_source = "".join(
+        line for cell in riva_payload["cells"] for line in cell.get("source", [])
+    )
+    assert "RIVA_VERSION = '2.26.0'" in riva_source
+    assert "build_riva_rmir.sh" in riva_source
+    assert "start_riva.sh" in riva_source
+    assert "riva.client.ASRService" in riva_source
+    assert "offline_recognize" in riva_source
+    assert "CHECK_EKS_PREREQUISITES = False" in riva_source
+
+    riva_build_text = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "--entrypoint riva-build" in riva_build_text
+    assert "nemo2riva" in riva_build_text
+    assert "model.nemo" in riva_build_text
+
+    riva_start_text = (ROOT / "scripts" / "start_riva.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "--entrypoint riva-deploy" in riva_start_text
+    assert "--publish 50051:50051" in riva_start_text
+
+    requirements_text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    assert "nemo_toolkit[asr]==2.7.3" in requirements_text
+    assert "nvidia-riva-client==2.26.0" in requirements_text
 
     for script in sorted((ROOT / "scripts").glob("*.sh")) + [ROOT / "launchable" / "setup.sh"]:
         subprocess.run(["bash", "-n", str(script)], check=True)
@@ -78,7 +123,7 @@ def main() -> int:
     if not compileall.compile_dir(ROOT / "src", quiet=1):
         raise RuntimeError("Python source compilation failed")
 
-    print("Repository structure, Python 3.12 contract, YAML, notebooks, shell syntax and Python syntax are valid.")
+    print("Repository structure, Python 3.12, NeMo/Riva contracts, notebooks, shell syntax and Python syntax are valid.")
     return 0
 
 

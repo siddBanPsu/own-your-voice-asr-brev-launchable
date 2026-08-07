@@ -4,8 +4,8 @@ schema_version: 1
 name: Own Your Voice - Parakeet ASR Labs
 description: >-
   Three single-GPU labs for Parakeet ASR: deploy the supported 0.6B Speech NIM,
-  run a configurable English-to-Dutch FLEURS adaptation with held-out selection,
-  then export to ONNX and serve with NVIDIA Triton Inference Server.
+  fine-tune it with NVIDIA NeMo on Dutch FLEURS using held-out selection, then
+  build and serve the customized pipeline with NVIDIA Riva locally or on EKS.
 
 default_hardware:
   provider: aws
@@ -21,12 +21,12 @@ validated_profiles:
     gpu: NVIDIA T4 16 GB
     host_memory_gb: 32
     lab_profile: t4
-    notes: Labs 2-3 only. Lab 2 uses a smaller Dutch subset and CTC-head adaptation.
+    notes: Labs 2-3 only. Lab 2 uses a smaller Dutch subset and NeMo CTC-decoder adaptation.
   - label: Standard
     gpu: NVIDIA L4 22/24 GB or A10 24 GB
     host_memory_gb: 32
     lab_profile: l4
-    notes: Lab 2 trains the CTC head and last two encoder blocks with best-checkpoint selection.
+    notes: Lab 2 uses NeMo to train the CTC decoder and last two encoder blocks with val_wer selection.
   - label: Full
     gpu: NVIDIA A100 40/80 GB
     host_memory_gb: 32
@@ -39,6 +39,10 @@ software:
   python_version: "3.12"
   python_manager: uv
   setup_script_file: launchable/setup.sh
+  jupyter_root_candidates:
+    - ~/workspace/own-your-voice-asr-brev-launchable
+    - ~/own-your-voice-asr-brev-launchable
+  jupyter_default_url: /lab/tree/labs/00_start_here.ipynb?reset
 
 speech_nim:
   container_id: parakeet-0-6b-ctc-en-us
@@ -48,6 +52,13 @@ speech_nim:
   grpc_port: 50051
   access: NVIDIA AI Enterprise license and personal NGC API key with Catalog access
   credential_handling: Prompt in Lab 1 at runtime; never store in Launchable or repository.
+
+riva:
+  version: "2.26.0"
+  local_api: localhost:50051
+  deployable_artifact: artifacts/riva/own_your_voice_asr.rmir
+  production_path: Riva Helm chart on a pre-provisioned GPU-enabled Amazon EKS cluster
+  workshop_path: Riva Docker container on the Brev GPU
 
 source:
   type: public_git_repository

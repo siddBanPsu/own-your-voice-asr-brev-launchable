@@ -2,63 +2,73 @@
 
 ## Before the event
 
-- Publish the repository and create the Brev Launchable using the recorded
-  settings under `launchable/`.
-- Rehearse on the default AWS L4 profile and once on the intended A100 profile.
-- Confirm the instructor and attendees have NVIDIA AI Enterprise entitlement
-  plus personal NGC API keys with Catalog access before Lab 1.
-- Confirm attendees can see the Jupyter CTA, select the workshop kernel and
-  download the model. The preflight output must report Python 3.12.
-- Ask attendees to deploy 20-30 minutes before the lab. First-run downloads
-  include the Speech NIM container/model, open 0.6B weights, Dutch FLEURS, and
-  the Triton image.
-- Keep one prewarmed instructor instance and one backup Launchable link.
+- Create the Brev Launchable from `launchable/` and rehearse the exact image on
+  the intended L4 and A100 profiles.
+- Confirm Python 3.12, NeMo 2.7.3, CUDA, Docker, and the NVIDIA Container
+  Toolkit from the workshop kernel.
+- Confirm instructor and attendees have the required NVIDIA AI Enterprise/NGC
+  access before Labs 1 and 3.
+- Pre-cache the Speech NIM image/model, Parakeet `.nemo` checkpoint, FLEURS
+  splits, Riva 2.26.0 image, and Python dependencies.
+- Measure Lab 2 training, `.nemo` save, `riva-build`, and `riva-deploy` duration
+  on the exact event GPU. First-run downloads and TensorRT engine generation
+  can dominate the schedule.
+- Keep one prewarmed instructor instance, the completed `.nemo` and RMIR
+  artifacts, and a backup Launchable link.
+- If demonstrating EKS, have a platform owner pre-provision a GPU-enabled
+  cluster, model volume, NGC secrets, and gRPC-safe access path. Do not create
+  cloud infrastructure from attendee notebooks.
 
 ## Timing and checkpoints
 
-### Lab 1: deploy and benchmark (75-90 minutes)
+### Lab 1: Speech NIM baseline (75-90 minutes)
 
-Checkpoint: the 0.6B NIM reports ready and every participant produces an HTTP
-transcript plus latency, real-time factor and throughput-x-realtime. Discuss
-why one local, single-client benchmark is not a capacity plan. Stop the NIM
-before Lab 2 so it releases GPU memory.
+Checkpoint: the 0.6B NIM is ready and each participant produces an HTTP
+transcript plus latency, real-time factor, and throughput-x-realtime. Stop the
+NIM before Lab 2.
 
-### Lab 2: Dutch cross-language adaptation (75-100 minutes)
+### Lab 2: NeMo adaptation (75-120 minutes)
 
-Checkpoint: participants can explain tokenizer coverage, see which layers their
-GPU profile trains, identify the best validation step, compare the untouched
-Dutch test result, and report the English-forgetting guardrail. Step 0 is a
-valid selection when no update improves validation. Do not present the subset
-result as a customer or multilingual-production claim.
+Checkpoint: participants can explain the NeMo manifest, show zero unknown
+tokens with the reused tokenizer, identify trainable layers, select the best
+checkpoint by `val_wer`, compare untouched versus selected held-out WER, inspect
+the English guardrail, and save `artifacts/parakeet-ctc-0.6b-nl.nemo`.
 
-### Lab 3: ONNX and Triton (45 minutes)
+If validation or test does not improve, report it. Do not tune after repeatedly
+viewing test results and do not manufacture an improvement for the workshop.
 
-Checkpoint: Triton reports ready, the HTTP client returns logits, and CTC
-decoding yields a transcript. Close by mapping the local model repository to
-EKS storage, a service endpoint, health checks, metrics and autoscaling.
+### Lab 3: Riva build and deployment (60-90 minutes)
+
+Checkpoint: `riva-build` creates `artifacts/riva/own_your_voice_asr.rmir`, the
+local `riva-deploy` produces a GPU-optimized model repository, Riva becomes
+ready on port 50051, and the Python client returns a held-out transcript.
+Participants should be able to explain that Riva owns the optimized Triton
+repository and that applications use the Riva gRPC API.
+
+For the EKS discussion, map the same RMIR to the chart's `/data/rmir/<name>_v<version>/model.rmir`
+layout, GPU-specific model generation, shared storage or S3 model cache,
+homogeneous GPU nodes, HTTP/2 ingress, TLS, observability, and load testing.
 
 ## Recovery paths
 
-- **NIM image pull is denied:** verify NVIDIA AI Enterprise entitlement, NGC
-  Catalog access, and that the personal key has not expired.
-- **NIM is slow to become ready:** allow up to 30 minutes on first startup,
-  then inspect `docker logs parakeet-0-6b-ctc-en-us`.
-- **NIM is unavailable on the GPU:** switch to an L4, A10, A100, or another
-  support-matrix GPU; T4 does not meet the compute capability requirement.
-- **Model download is slow:** pair participants with the prewarmed instance and
-  continue the architecture discussion while caches populate.
-- **FLEURS download is slow:** use the instructor's populated Hugging Face cache
-  or reduce the configurable sample counts; do not merge the official splits.
-- **Tokenizer coverage fails:** inspect the listed examples and normalization.
-  Do not train through `<unk>` labels or silently move validation into train.
-- **Dutch validation does not improve:** keep the selected step at 0 and report
-  the result honestly. Do not tune controls after inspecting the test split.
-- **CUDA is not available:** switch the notebook kernel to **Own Your Voice ASR
-  Labs** and rerun `scripts/preflight.py`.
-- **Out of memory in Lab 2:** set `LAB_PROFILE=t4`, restart the kernel and rerun
-  the notebook. Confirm the NIM container is stopped first. This freezes the
-  encoder and trains only the CTC head.
-- **Triton cannot start:** confirm Docker sees the GPU, verify that
-  `model.onnx` exists, then inspect `docker logs own-your-voice-triton`.
-- **ONNX export is slow:** use the instructor's exported model repository so
-  participants can still complete the serving exercise.
+- **NGC pull denied:** verify entitlement, Catalog access, and key validity.
+- **NIM/Riva port conflict:** stop the Lab 1 NIM before Lab 3; both use 50051.
+- **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
+- **NeMo import fails:** confirm Python 3.12 and rerun the pinned setup script;
+  do not mix the archived tutorial's NeMo 1.23 install into this environment.
+- **FLEURS download is slow:** use the instructor cache or reduce only the
+  configurable sample counts; preserve official split boundaries.
+- **Tokenizer audit fails:** inspect normalization and affected examples. Do
+  not train through unknown labels or silently retrain a tokenizer mid-lab.
+- **Out of memory in Lab 2:** stop NIM/Riva, set `LAB_PROFILE=t4`, restart the
+  kernel, and train the CTC decoder only.
+- **No `val_wer` checkpoint:** inspect NeMo validation logs and manifest paths;
+  checkpoint selection must monitor `val_wer` with mode `min`.
+- **RMIR build fails:** confirm the full `.nemo` artifact, Riva 2.26.0 image,
+  NGC access, free disk, and integrated `nemo2riva` log output.
+- **Riva deployment is slow:** engine generation is target-GPU work. Use the
+  instructor's pre-generated repository only on the same GPU product.
+- **EKS pod stays initializing:** inspect `riva-model-init`, PVC mounts, RMIR
+  directory/version naming, NGC secrets, GPU allocation, and startup probes.
+- **EKS scaling is slow:** use the Riva chart's shared or S3 model cache only
+  across homogeneous GPU nodes, then load-test the real concurrency target.

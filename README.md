@@ -1,116 +1,139 @@
-# Own Your Voice: Parakeet ASR Labs on NVIDIA Brev
+# Own Your Voice: Parakeet, NeMo, and Riva on NVIDIA Brev
 
-A GitHub-ready, single-GPU lab environment for the AWS + NVIDIA roadshow. The
-sequence follows the event brief: deploy Parakeet CTC 0.6B through NVIDIA
-Speech NIM, adapt the open model from English to Dutch speech, then export it
-to ONNX and serve it with NVIDIA Triton Inference Server.
+A single-GPU workshop that connects NVIDIA's speech stack end to end:
+
+```text
+Parakeet Speech NIM baseline
+        ↓
+NeMo fine-tuning + held-out evaluation
+        ↓
+selected .nemo checkpoint
+        ↓
+Riva ServiceMaker → RMIR
+        ↓
+Riva API on EKS or local Docker
+        ↓
+TensorRT + Triton inside Riva
+```
 
 The repository is pinned to CPython 3.12. The Brev setup script installs its
-own managed Python 3.12 runtime with `uv`, so it does not use Ubuntu 22.04's
-older system Python.
+own managed Python 3.12 runtime with `uv`, so Ubuntu's system Python is not used.
 
 ## Lab flow
 
 | Lab | Outcome | Workshop time |
 |---|---|---:|
-| 0. Start here | Verify CUDA, disk, Docker and the selected memory profile | 10 min |
-| 1. NIM deployment | Deploy Parakeet CTC 0.6B Speech NIM and benchmark its HTTP API | 75-90 min |
-| 2. Dutch adaptation | Fine-tune on Dutch FLEURS, select on validation, test once, check English forgetting | 75-100 min |
-| 3. ONNX + Triton | Export FP16 ONNX, build a Triton model repository, call the HTTP endpoint | 45 min |
+| 0. Start here | Verify Python 3.12, CUDA, disk, Docker, and the GPU profile | 10 min |
+| 1. Speech NIM | Deploy Parakeet CTC 0.6B and benchmark its supported API | 75-90 min |
+| 2. NVIDIA NeMo | Fine-tune on Dutch FLEURS, select by `val_wer`, test once, and save a complete `.nemo` model | 75-120 min |
+| 3. NVIDIA Riva | Build an RMIR, serve locally through Riva gRPC, and map the same artifact to Riva on EKS | 60-90 min |
 
-The fine-tune is configurable and longer than a smoke test, but it remains an
-educational cross-language transfer exercise rather than a production accuracy
-claim.
+The Dutch exercise demonstrates the customization workflow. A small cross-
+language subset is not evidence of production Dutch accuracy.
 
-## GPU support
+## Why the tokenizer is reused
 
-The profile is selected from detected GPU memory when `LAB_PROFILE=auto`.
+Lab 2 follows NVIDIA Riva's
+[`asr-finetune-parakeet-nemo.ipynb`](https://github.com/nvidia-riva/tutorials/blob/main/asr-finetune-parakeet-nemo.ipynb).
+That notebook recommends reusing a pretrained tokenizer for adaptation datasets
+below 50 hours. The lab therefore:
 
-| GPU class | Profile | Lab 2 behavior |
+- keeps the tokenizer embedded in `nvidia/parakeet-ctc-0.6b`;
+- normalizes Dutch text to the checkpoint's lower-case Latin output contract;
+- audits every train, validation, and test transcript for unknown tokens; and
+- stops before training if coverage is incomplete.
+
+This preserves the decoder shape and simplifies Riva packaging. It does not
+create a new native Dutch vocabulary or language model.
+
+## GPU profiles
+
+`LAB_PROFILE=auto` selects conservative settings from detected GPU memory.
+
+| GPU class | Profile | NeMo behavior |
 |---|---|---|
-| T4 16 GB | `t4` | Labs 2-3 only; Lab 2 trains the CTC head on a smaller FLEURS subset |
-| L4/A10 20-24 GB | `l4` | Full path; NIM offline `bs=1`, then CTC head plus two encoder blocks |
-| A100 40/80 GB | `a100` | Full path; Lab 2 defaults to the same conservative two-block policy |
+| T4 16 GB | `t4` | Labs 2-3 only; train the CTC decoder on a smaller subset |
+| L4/A10 20-24 GB | `l4` | Train the decoder plus the final two encoder blocks |
+| A100 40/80 GB | `a100` | Same safe default, with room to increase the controls |
 
-Recommended Brev default: AWS `g6.2xlarge`, one L4, 32 GB host RAM, 150 GB
-disk. This matches the AWS G6/L4 target in the event brief. An L4 is the
-minimum for the complete three-lab path; a single A100 gives more headroom.
-Avoid ARM instances because the workshop's pinned Python and Triton client
-wheels target x86_64.
+Recommended Brev default: AWS `g6.2xlarge`, one L4, 32 GB host RAM, and at
+least 150 GB disk. Recheck provider availability, price, image, and capacity
+before the event. Stop the Lab 1 NIM before training or Riva deployment so only
+one speech stack owns the GPU.
 
-For the complete three-lab path, use an L4, A10, A100, or another GPU listed in
-the NVIDIA ASR NIM support matrix. A T4 can run the open-weight adaptation and
-ONNX/Triton exercises but cannot run the Speech NIM deployment lab.
+## Access requirements
 
-At the time this package was prepared (6 August 2026), the Brev CLI showed
-AWS `g6.2xlarge` at about US$1.17/hour and single A100 options from about
-US$1.66/hour. Availability and pricing change, so check again before the event.
+Lab 1 and Lab 3 require NVIDIA NGC access and the applicable NVIDIA AI
+Enterprise entitlement for the Speech NIM and Riva containers. Each notebook
+asks for a personal NGC API key with hidden input. The scripts use a temporary
+Docker configuration and do not add the key to the repository, notebook,
+Launchable defaults, or long-lived Docker configuration.
 
-## Speech NIM access
+Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 pins the
+Riva container, Helm chart, and client to 2.26.0.
 
-Lab 1 follows NVIDIA's supported Speech NIM deployment workflow for
-`parakeet-0-6b-ctc-en-us`. Self-hosting requires NVIDIA AI Enterprise access
-and a personal NGC API key with Catalog access. The notebook requests the key
-with hidden input and passes it only to the NIM container for that runtime
-session; never add it to the repository, notebook source, Launchable defaults,
-or setup script. The Brev image must include Docker and the NVIDIA Container
-Toolkit.
+## Lab 3 deployment choices
 
-The default profile is the official low-memory single-client offline profile:
-`name=parakeet-0-6b-ctc-en-us,bs=1,mode=ofl,diarizer=disabled,vad=default`.
-It exposes HTTP on port 9000 and gRPC on 50051 only inside the Brev VM. Stop the
-NIM with `bash scripts/stop_nim.sh` before Lab 2 to release GPU memory.
+### Amazon EKS — production-oriented path
 
-## Configurable Dutch adaptation
+The RMIR from Lab 3 is staged in the Riva model volume and selected by the Riva
+Helm chart. The chart runs target-GPU optimization, generates the Triton model
+repository, starts the Riva API, and exposes a Kubernetes Service. See
+[`deploy/eks/README.md`](deploy/eks/README.md).
 
-Lab 2 uses the official Dutch FLEURS `nl_nl` train, validation, and test
-splits. One controls cell exposes sample limits, steps, evaluation frequency,
-learning rate, and trainable layers while retaining GPU-aware defaults. The
-loader normalizes Dutch to the English checkpoint's lower-case Latin output
-contract, checks for unknown tokenizer tokens, and filters overlong recordings
-instead of truncating audio with a full transcript.
+The repository deliberately does not create an EKS cluster. A platform owner
+must first confirm AWS account/Region, GPU node availability, EKS version and
+GPU device mechanism, storage class, NGC secrets, DNS, gRPC ingress, TLS, and
+cost. Model caches can be reused only across homogeneous GPU products.
 
-Training evaluates periodically on validation and restores the best checkpoint,
-including step 0 when no update improves validation. The test split is used for
-the final comparison only, and a small English slice reports catastrophic
-forgetting. Lab 3 can export the selected open-model checkpoint, but that
-artifact is not automatically a supported Dutch Speech NIM package.
+### Brev/local Docker — runnable workshop path
+
+The notebook calls:
+
+```bash
+bash scripts/build_riva_rmir.sh
+bash scripts/start_riva.sh
+```
+
+`riva-deploy` optimizes the RMIR for the current GPU and Riva serves the model
+on gRPC port 50051. Applications call Riva, not raw Triton. Stop it with:
+
+```bash
+bash scripts/stop_riva.sh
+```
 
 ## Create the Brev Launchable
 
-1. Push this directory to a public GitHub repository.
-2. Follow [launchable/README.md](launchable/README.md).
-3. Preview once on an L4, then run all four notebooks using the
-   **Own Your Voice ASR Labs** kernel.
-4. Share the generated Launchable link with attendees and ask them to deploy
-   20-30 minutes before the lab starts.
+1. Push this repository to GitHub.
+2. Follow [`launchable/README.md`](launchable/README.md).
+3. Preview on the intended L4 and A100 profiles.
+4. Run all four notebooks with the **Own Your Voice ASR Labs** kernel.
+5. Share the Launchable link and ask attendees to deploy 20-30 minutes early.
 
-The versioned builder settings are in
-[`launchable/brev-launchable.yaml`](launchable/brev-launchable.yaml); the script
-to paste into the Brev VM setup field is
-[`launchable/setup.sh`](launchable/setup.sh). That script provisions CPython
-3.12 and fails the build if the resulting environment is not Python 3.12.
+The setup script starts with `#!/bin/bash`, installs managed Python 3.12, and
+configures fresh managed-Jupyter sessions to open
+`labs/00_start_here.ipynb` directly.
 
 ## Run on an existing Brev instance
-
-From this repository:
 
 ```bash
 bash launchable/setup.sh
 ~/.venvs/own-your-voice-asr/bin/python scripts/preflight.py
 ```
 
-Open Jupyter, select the **Own Your Voice ASR Labs** kernel and start with
-`labs/00_start_here.ipynb`.
+## Validation boundary
 
-## Production handoff
+Repository structure, Python and shell syntax, notebook code, dependency pins,
+and deployment contracts can be validated locally with:
 
-The notebooks isolate four production contracts: the Speech NIM API, 16 kHz
-audio preprocessing, the open model checkpoint, and the ONNX/Triton model
-repository. On AWS, deploy the supported NIM container through EKS with NGC
-pull credentials, persistent model cache, health checks, metrics, GPU
-scheduling, autoscaling, TLS, rollout policy, and workload-based load tests.
-Labs 2-3 keep customization and the lower-level portable runtime boundary
-visible rather than implying that a local export is a supported NIM package.
+```bash
+python scripts/validate_repo.py
+python -m unittest discover -s tests
+```
 
-See [references/SOURCES.md](references/SOURCES.md) for the official references.
+A real workshop release still requires a GPU rehearsal of the exact NeMo
+version, Parakeet checkpoint, dataset size, Riva container, target GPU, RMIR
+build time, engine-generation time, Riva transcript, and EKS chart/storage
+configuration. Do not describe static checks as a live Riva or EKS deployment.
+
+See [`references/SOURCES.md`](references/SOURCES.md) for official references.
