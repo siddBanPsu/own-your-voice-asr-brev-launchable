@@ -39,6 +39,10 @@ software:
   python_version: "3.12"
   python_manager: uv
   setup_script_file: launchable/setup.sh
+  jupyter_root_candidates:
+    - ~/workspace/own-your-voice-asr-brev-launchable
+    - ~/own-your-voice-asr-brev-launchable
+  jupyter_default_url: /lab/tree/labs/00_start_here.ipynb?reset
 
 speech_nim:
   container_id: parakeet-0-6b-ctc-en-us

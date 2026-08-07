@@ -5,6 +5,7 @@ VENV_DIR="${HOME}/.venvs/own-your-voice-asr"
 WORKSPACE_DIR="${HOME}/workspace"
 KERNEL_NAME="own-your-voice-asr"
 KERNEL_DISPLAY_NAME="Own Your Voice ASR Labs"
+REPOSITORY_NAME="own-your-voice-asr-brev-launchable"
 PROFILE_VALUE="${LAB_PROFILE:-auto}"
 PYTHON_VERSION="3.12"
 UV_VERSION="0.11.32"
@@ -99,6 +100,7 @@ mkdir -p "${WORKSPACE_DIR}/.cache/huggingface" "${WORKSPACE_DIR}/artifacts"
 export WORKSHOP_KERNEL_JSON="${HOME}/.local/share/jupyter/kernels/${KERNEL_NAME}/kernel.json"
 export WORKSHOP_PROFILE_VALUE="${PROFILE_VALUE}"
 export WORKSHOP_HF_HOME="${WORKSPACE_DIR}/.cache/huggingface"
+export WORKSHOP_REPOSITORY_NAME="${REPOSITORY_NAME}"
 "${VENV_DIR}/bin/python" - <<'PY'
 import json
 import os
@@ -113,6 +115,33 @@ kernel["env"] = {
     "TOKENIZERS_PARALLELISM": "false",
 }
 kernel_path.write_text(json.dumps(kernel, indent=2) + "\n", encoding="utf-8")
+
+config_path = Path.home() / ".jupyter" / "jupyter_server_config.py"
+config_path.parent.mkdir(parents=True, exist_ok=True)
+start_marker = "# BEGIN OWN YOUR VOICE LAB LANDING PAGE"
+end_marker = "# END OWN YOUR VOICE LAB LANDING PAGE"
+repository_name = os.environ["WORKSHOP_REPOSITORY_NAME"]
+block = f'''{start_marker}
+from pathlib import Path as _WorkshopPath
+
+_workshop_home = _WorkshopPath.home()
+_workshop_candidates = (
+    _workshop_home / "workspace" / "{repository_name}",
+    _workshop_home / "{repository_name}",
+)
+for _workshop_root in _workshop_candidates:
+    if (_workshop_root / "labs" / "00_start_here.ipynb").is_file():
+        c.ServerApp.root_dir = str(_workshop_root)
+        c.ServerApp.default_url = "/lab/tree/labs/00_start_here.ipynb?reset"
+        break
+{end_marker}'''
+existing = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
+if start_marker in existing and end_marker in existing:
+    before, remainder = existing.split(start_marker, 1)
+    _, after = remainder.split(end_marker, 1)
+    existing = before.rstrip() + "\n" + after.lstrip("\n")
+config_path.write_text(existing.rstrip() + "\n\n" + block + "\n", encoding="utf-8")
+print(f"Jupyter landing page configured in {config_path}")
 PY
 
 echo "[6/6] Verifying Python and CUDA from the lab kernel"
@@ -139,5 +168,5 @@ print(
 PY
 
 echo
-echo "Setup complete. Open Jupyter and select the '${KERNEL_DISPLAY_NAME}' kernel."
-echo "Start with labs/00_start_here.ipynb."
+echo "Setup complete. Open the Jupyter CTA and select the '${KERNEL_DISPLAY_NAME}' kernel."
+echo "Fresh managed-Jupyter sessions open labs/00_start_here.ipynb automatically."

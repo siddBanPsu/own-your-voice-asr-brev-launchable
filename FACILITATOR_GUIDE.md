@@ -7,8 +7,9 @@
 - Rehearse on the default AWS L4 profile and once on the intended A100 profile.
 - Confirm the instructor and attendees have NVIDIA AI Enterprise entitlement
   plus personal NGC API keys with Catalog access before Lab 1.
-- Confirm attendees can see the Jupyter CTA, select the workshop kernel and
-  download the model. The preflight output must report Python 3.12.
+- Confirm the Jupyter CTA opens Lab 0 directly, attendees can select the
+  workshop kernel, and the model downloads. The preflight output must report
+  Python 3.12.
 - Ask attendees to deploy 20-30 minutes before the lab. First-run downloads
   include the Speech NIM container/model, open 0.6B weights, Dutch FLEURS, and
   the Triton image.
@@ -33,9 +34,12 @@ result as a customer or multilingual-production claim.
 
 ### Lab 3: ONNX and Triton (45 minutes)
 
-Checkpoint: Triton reports ready, the HTTP client returns logits, and CTC
-decoding yields a transcript. Close by mapping the local model repository to
-EKS storage, a service endpoint, health checks, metrics and autoscaling.
+Checkpoint: Triton reports ready, every returned FP32 logit is finite, CTC
+decoding yields a transcript, and the Triton transcript matches the in-process
+PyTorch path. Describe this as the portable correctness baseline, not a fully
+optimized production engine. Close by mapping the local model repository to
+mixed-precision/TensorRT validation, EKS storage, a service endpoint, health
+checks, metrics and autoscaling.
 
 ## Recovery paths
 
@@ -60,5 +64,9 @@ EKS storage, a service endpoint, health checks, metrics and autoscaling.
   encoder and trains only the CTC head.
 - **Triton cannot start:** confirm Docker sees the GPU, verify that
   `model.onnx` exists, then inspect `docker logs own-your-voice-triton`.
+- **Token IDs are all zero or the transcript is empty:** inspect the notebook's
+  finite-logit report. Rerun the FP32 export and restart Triton; do not serve an
+  older FP16 graph or cast BF16 tensors to NumPy before converting them in
+  PyTorch.
 - **ONNX export is slow:** use the instructor's exported model repository so
   participants can still complete the serving exercise.

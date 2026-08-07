@@ -29,14 +29,14 @@ class ParakeetOnnxWrapper:
         self.module = _Wrapper(model)
 
 
-def export_fp16_onnx(model, sample_inputs: dict[str, Any], destination: str | Path) -> Path:
+def export_fp32_onnx(model, sample_inputs: dict[str, Any], destination: str | Path) -> Path:
     import torch
 
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    model.eval().to(device="cuda", dtype=torch.float16)
+    model.eval().to(device="cuda", dtype=torch.float32)
     wrapper = ParakeetOnnxWrapper(model).module.eval()
-    features = sample_inputs["input_features"].to(device="cuda", dtype=torch.float16)
+    features = sample_inputs["input_features"].to(device="cuda", dtype=torch.float32)
     mask = sample_inputs["attention_mask"].to(device="cuda", dtype=torch.int64)
     with torch.inference_mode():
         torch.onnx.export(
@@ -63,11 +63,11 @@ def triton_config(vocab_size: int) -> str:
 platform: "onnxruntime_onnx"
 max_batch_size: 1
 input [
-  {{ name: "input_features" data_type: TYPE_FP16 dims: [ -1, 80 ] }},
+  {{ name: "input_features" data_type: TYPE_FP32 dims: [ -1, 80 ] }},
   {{ name: "attention_mask" data_type: TYPE_INT64 dims: [ -1 ] }}
 ]
 output [
-  {{ name: "logits" data_type: TYPE_FP16 dims: [ -1, {vocab_size} ] }}
+  {{ name: "logits" data_type: TYPE_FP32 dims: [ -1, {vocab_size} ] }}
 ]
 instance_group [ {{ kind: KIND_GPU count: 1 }} ]
 dynamic_batching {{ preferred_batch_size: [ 1 ] max_queue_delay_microseconds: 1000 }}
@@ -85,9 +85,9 @@ def infer_triton(input_features: np.ndarray, attention_mask: np.ndarray, url: st
     import tritonclient.http as httpclient
 
     client = httpclient.InferenceServerClient(url=url)
-    feature_input = httpclient.InferInput("input_features", input_features.shape, "FP16")
+    feature_input = httpclient.InferInput("input_features", input_features.shape, "FP32")
     mask_input = httpclient.InferInput("attention_mask", attention_mask.shape, "INT64")
-    feature_input.set_data_from_numpy(input_features.astype(np.float16, copy=False))
+    feature_input.set_data_from_numpy(input_features.astype(np.float32, copy=False))
     mask_input.set_data_from_numpy(attention_mask.astype(np.int64, copy=False))
     response = client.infer(TRITON_MODEL_NAME, inputs=[feature_input, mask_input])
     return response.as_numpy("logits")

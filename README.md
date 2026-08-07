@@ -16,7 +16,7 @@ older system Python.
 | 0. Start here | Verify CUDA, disk, Docker and the selected memory profile | 10 min |
 | 1. NIM deployment | Deploy Parakeet CTC 0.6B Speech NIM and benchmark its HTTP API | 75-90 min |
 | 2. Dutch adaptation | Fine-tune on Dutch FLEURS, select on validation, test once, check English forgetting | 75-100 min |
-| 3. ONNX + Triton | Export FP16 ONNX, build a Triton model repository, call the HTTP endpoint | 45 min |
+| 3. ONNX + Triton | Export a stable FP32 ONNX baseline, serve it with Triton, and validate the HTTP transcript | 45 min |
 
 The fine-tune is configurable and longer than a smoke test, but it remains an
 educational cross-language transfer exercise rather than a production accuracy
@@ -89,7 +89,24 @@ The versioned builder settings are in
 [`launchable/brev-launchable.yaml`](launchable/brev-launchable.yaml); the script
 to paste into the Brev VM setup field is
 [`launchable/setup.sh`](launchable/setup.sh). That script provisions CPython
-3.12 and fails the build if the resulting environment is not Python 3.12.
+3.12 and fails the build if the resulting environment is not Python 3.12. It
+also configures managed Jupyter to open `labs/00_start_here.ipynb` from the
+deployment CTA on fresh instances; the attendee only needs to select the
+**Own Your Voice ASR Labs** kernel.
+
+## Portable Triton baseline
+
+Lab 3 exports FP32 ONNX and uses FP32 at the Triton HTTP boundary. The source
+checkpoint is BF16, and an unconditional conversion of the complete model to
+FP16 produced non-finite logits on the workshop path. FP32 is therefore the
+correctness and provider-portability baseline: it remains GPU accelerated
+through ONNX Runtime and Triton, but it is not presented as the maximum-
+throughput production configuration.
+
+For production optimization, benchmark a TensorRT or mixed-precision variant
+against the FP32 artifact. Keep precision-sensitive operations in FP32 when
+needed, reject NaN or Inf logits, compare held-out WER, and measure latency,
+throughput, and GPU memory on the target hardware before promotion.
 
 ## Run on an existing Brev instance
 
@@ -100,8 +117,10 @@ bash launchable/setup.sh
 ~/.venvs/own-your-voice-asr/bin/python scripts/preflight.py
 ```
 
-Open Jupyter, select the **Own Your Voice ASR Labs** kernel and start with
-`labs/00_start_here.ipynb`.
+On a fresh managed-Jupyter deployment, the Jupyter CTA opens
+`labs/00_start_here.ipynb` directly. Select the **Own Your Voice ASR Labs**
+kernel. If an already-running Jupyter server predates setup, restart managed
+Jupyter once or open the notebook from the file browser.
 
 ## Production handoff
 

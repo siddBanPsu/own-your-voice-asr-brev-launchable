@@ -4,6 +4,7 @@ from __future__ import annotations
 import compileall
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -38,6 +39,12 @@ def main() -> int:
     assert setup_text.startswith("#!/bin/bash\n")
     assert 'PYTHON_VERSION="3.12"' in setup_text
     assert '"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}"' in setup_text
+    assert 'c.ServerApp.default_url = "/lab/tree/labs/00_start_here.ipynb?reset"' in setup_text
+    assert 'c.ServerApp.root_dir = str(_workshop_root)' in setup_text
+    embedded_python = re.findall(r"<<'PY'\n(.*?)\nPY", setup_text, flags=re.DOTALL)
+    assert embedded_python, "setup.sh must contain embedded Python checks"
+    for index, source in enumerate(embedded_python):
+        compile(source, f"launchable/setup.sh:python-{index}", "exec")
 
     manifest_text = (ROOT / "launchable" / "brev-launchable.yaml").read_text(encoding="utf-8")
     assert "mode: VM" in manifest_text
@@ -71,6 +78,23 @@ def main() -> int:
     assert "fine_tune_with_validation" in domain_source
     assert "baseline_test" in domain_source
     assert "english_guardrail" in domain_source
+
+    triton_payload = json.loads(
+        (ROOT / "labs" / "03_onnx_triton.ipynb").read_text(encoding="utf-8")
+    )
+    triton_source = "".join(
+        line for cell in triton_payload["cells"] for line in cell.get("source", [])
+    )
+    assert "export_fp32_onnx" in triton_source
+    assert "torch.float32" in triton_source
+    assert "np.isfinite(logits).all()" in triton_source
+    assert "pytorch_prediction" in triton_source
+
+    triton_config_text = (
+        ROOT / "triton" / "model_repository" / "parakeet_ctc" / "config.pbtxt"
+    ).read_text(encoding="utf-8")
+    assert "TYPE_FP32" in triton_config_text
+    assert "TYPE_FP16" not in triton_config_text
 
     for script in sorted((ROOT / "scripts").glob("*.sh")) + [ROOT / "launchable" / "setup.sh"]:
         subprocess.run(["bash", "-n", str(script)], check=True)

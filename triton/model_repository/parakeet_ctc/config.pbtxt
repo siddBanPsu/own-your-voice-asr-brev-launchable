@@ -2,11 +2,11 @@ name: "parakeet_ctc"
 platform: "onnxruntime_onnx"
 max_batch_size: 1
 input [
-  { name: "input_features" data_type: TYPE_FP16 dims: [ -1, 80 ] },
+  { name: "input_features" data_type: TYPE_FP32 dims: [ -1, 80 ] },
   { name: "attention_mask" data_type: TYPE_INT64 dims: [ -1 ] }
 ]
 output [
-  { name: "logits" data_type: TYPE_FP16 dims: [ -1, 1025 ] }
+  { name: "logits" data_type: TYPE_FP32 dims: [ -1, 1025 ] }
 ]
 instance_group [ { kind: KIND_GPU count: 1 } ]
 dynamic_batching { preferred_batch_size: [ 1 ] max_queue_delay_microseconds: 1000 }
