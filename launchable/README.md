@@ -19,10 +19,13 @@ Launchable itself is created in the Brev Console.
 9. Keep access at **Anyone with the link** for a private roadshow, preview the
    deployment page, then create the Launchable.
 
-The setup script installs a managed CPython 3.12 runtime with `uv`; it does not
-use the Ubuntu image's system Python. Both environment creation and the final
-CUDA preflight fail if the interpreter is not Python 3.12. The selected Brev
-image must also provide Docker with the NVIDIA Container Toolkit; Lab 0 reports
+The setup script installs managed CPython 3.12 environments with `uv`; it does
+not use the Ubuntu image's system Python. Labs 0-2 use the isolated NeMo kernel,
+and Lab 3 uses the isolated Riva client kernel recorded in its notebook
+metadata. The split is required because NeMo 2.7.3 and Riva client 2.26.0 pin
+incompatible Protobuf versions. Environment creation and the final CUDA
+preflight fail if the interpreter is not Python 3.12. The selected Brev image
+must also provide Docker with the NVIDIA Container Toolkit; Lab 0 reports
 whether Docker is available. The script adds a user-level Jupyter Server
 configuration that resolves the repository under `~/workspace` or directly
 under the provider's home directory and redirects `/` to Lab 0. This applies

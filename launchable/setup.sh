@@ -2,9 +2,12 @@
 set -euo pipefail
 
 VENV_DIR="${HOME}/.venvs/own-your-voice-asr"
+RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"
 WORKSPACE_DIR="${HOME}/workspace"
 KERNEL_NAME="own-your-voice-asr"
 KERNEL_DISPLAY_NAME="Own Your Voice ASR Labs"
+RIVA_KERNEL_NAME="own-your-voice-riva"
+RIVA_KERNEL_DISPLAY_NAME="Own Your Voice Riva Client"
 REPOSITORY_NAME="own-your-voice-asr-brev-launchable"
 PROFILE_VALUE="${LAB_PROFILE:-auto}"
 PYTHON_VERSION="3.12"
@@ -78,8 +81,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   torch==2.13.0 \
   'nemo_toolkit[asr]==2.7.3' \
   'datasets[audio]==5.0.0' \
-  nvidia-riva-client==2.26.0 \
-  jiwer==4.0.0 \
+  jiwer==3.1.0 \
   librosa==0.11.0 \
   soundfile==0.13.1 \
   'requests>=2.32,<3' \
@@ -94,6 +96,17 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
 "${VENV_DIR}/bin/python" -m ipykernel install --user \
   --name "${KERNEL_NAME}" \
   --display-name "${KERNEL_DISPLAY_NAME}"
+
+echo "Creating the isolated Riva 2.26 client environment"
+"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}" "${RIVA_VENV_DIR}"
+retry "${UV_BIN}" pip install --python "${RIVA_VENV_DIR}/bin/python" \
+  nvidia-riva-client==2.26.0 \
+  jiwer==4.0.0 \
+  'ipykernel>=6.29,<7' \
+  'packaging>=24,<27'
+"${RIVA_VENV_DIR}/bin/python" -m ipykernel install --user \
+  --name "${RIVA_KERNEL_NAME}" \
+  --display-name "${RIVA_KERNEL_DISPLAY_NAME}"
 
 mkdir -p "${WORKSPACE_DIR}/.cache/huggingface" "${WORKSPACE_DIR}/artifacts"
 
@@ -167,6 +180,22 @@ print(
 )
 PY
 
+"${RIVA_VENV_DIR}/bin/python" - <<'PY'
+import importlib.metadata
+import sys
+
+import riva.client
+
+if sys.version_info[:2] != (3, 12):
+    raise RuntimeError(f"Python 3.12 is required; detected {sys.version.split()[0]}.")
+
+version = importlib.metadata.version("nvidia-riva-client")
+if version != "2.26.0":
+    raise RuntimeError(f"Riva client 2.26.0 is required; detected {version}.")
+
+print(f"Ready: Python {sys.version.split()[0]}, NVIDIA Riva client {version}")
+PY
+
 echo
-echo "Setup complete. Open the Jupyter CTA and select the '${KERNEL_DISPLAY_NAME}' kernel."
+echo "Setup complete. Labs 0-2 use '${KERNEL_DISPLAY_NAME}'; Lab 3 uses '${RIVA_KERNEL_DISPLAY_NAME}'."
 echo "Fresh managed-Jupyter sessions open labs/00_start_here.ipynb automatically."

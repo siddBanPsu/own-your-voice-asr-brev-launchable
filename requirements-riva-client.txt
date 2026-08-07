@@ -1,0 +1,4 @@
+nvidia-riva-client==2.26.0
+jiwer==4.0.0
+ipykernel>=6.29,<7
+packaging>=24,<27
