@@ -82,6 +82,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   --torch-backend "${TORCH_BACKEND}" \
   torch==2.13.0 \
   'nemo_toolkit[asr]==2.7.3' \
+  nemo2riva==2.22.0 \
   'datasets[audio]==5.0.0' \
   jiwer==3.1.0 \
   librosa==0.11.0 \
@@ -163,6 +164,8 @@ echo "[6/6] Verifying Python and CUDA from the lab kernel"
 "${VENV_DIR}/bin/python" - <<'PY'
 import sys
 
+import importlib.metadata
+
 import torch
 
 if sys.version_info[:2] != (3, 12):
@@ -175,6 +178,9 @@ if torch.version.cuda != "12.6":
     raise RuntimeError(
         f"The workshop requires the CUDA 12.6 PyTorch build; detected {torch.version.cuda}."
     )
+
+if importlib.metadata.version("nemo2riva") != "2.22.0":
+    raise RuntimeError("The workshop requires nemo2riva 2.22.0.")
 
 props = torch.cuda.get_device_properties(0)
 vram_gb = props.total_memory / 1024**3

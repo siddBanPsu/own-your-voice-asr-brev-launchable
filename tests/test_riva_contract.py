@@ -7,16 +7,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RivaContractTests(unittest.TestCase):
-    def test_build_script_uses_integrated_nemo_conversion(self):
+    def test_build_script_exports_riva_then_uses_servicemaker_cli(self):
         script = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(encoding="utf-8")
         self.assertTrue(script.startswith("#!/bin/bash\n"))
         self.assertIn("parakeet-0-6b-ctc-en-us", script)
         self.assertIn("ASR_NIM_TAG:-3.1.0", script)
         self.assertIn("nvcr.io/nim/nvidia/", script)
+        self.assertIn("NEMO2RIVA_BIN", script)
+        self.assertIn("--onnx-opset 18", script)
         self.assertIn("--entrypoint riva-build", script)
-        self.assertIn("model.nemo", script)
+        self.assertIn("NEMO_MODEL", script)
+        self.assertIn("model.riva", script)
         self.assertIn("nemo2riva", script)
-        self.assertIn("onnx_opset:19", script)
+        self.assertIn("speech_recognition", script)
+        self.assertIn("--decoder_type=greedy", script)
+        self.assertNotIn("--config-path", script)
+        self.assertNotIn("source_path=", script)
         self.assertIn("own_your_voice_asr.rmir", script)
 
     def test_local_riva_script_deploys_rmir_and_exposes_grpc(self):
@@ -69,6 +75,7 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn('RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"', setup)
         self.assertIn('RIVA_KERNEL_NAME="own-your-voice-riva"', setup)
         self.assertIn("nvidia-riva-client==2.26.0", setup)
+        self.assertIn("nemo2riva==2.22.0", setup)
 
     def test_setup_uses_driver_compatible_pytorch_backend(self):
         setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")

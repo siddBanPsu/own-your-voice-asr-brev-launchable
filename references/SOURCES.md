@@ -20,14 +20,15 @@ The workshop follows this NVIDIA stack boundary:
 - [NeMo installation](https://docs.nvidia.com/nemo-framework/user-guide/latest/installation.html)
 - [Google FLEURS dataset and official language splits](https://huggingface.co/datasets/google/fleurs)
 
-The reference notebook uses an older NeMo 1.23 environment and standalone
-`nemo2riva`. This repository keeps its training pattern and same-tokenizer
-recommendation but pins NeMo 2.7.3 for Python 3.12 and uses the ASR NIM image's
-integrated NeMo conversion in `riva-build`.
+The reference notebook uses an older NeMo 1.23 environment. This repository
+keeps its training pattern and same-tokenizer recommendation, pins NeMo 2.7.3
+and `nemo2riva` 2.22.0 for Python 3.12, exports the Parakeet CTC checkpoint with
+ONNX opset 18, and then uses the ASR NIM image's positional ServiceMaker CLI.
 
 ## Riva build, custom NIM deployment, and client
 
 - [Deploy custom ASR models as Speech NIM](https://docs.nvidia.com/nim/speech/latest/asr/customization/custom-deployment.html)
+- [NVIDIA `nemo2riva` converter and Parakeet CTC command](https://github.com/nvidia-riva/nemo2riva)
 - [ASR pipeline configuration for `riva-build`](https://docs.nvidia.com/nim/speech/latest/asr/customization/pipeline-configuration.html)
 - [Riva support matrix and the x86 Speech NIM boundary](https://docs.nvidia.com/deeplearning/riva/user-guide/docs/support-matrix/support-matrix.html)
 - [Parakeet 0.6B ASR NIM container](https://catalog.ngc.nvidia.com/orgs/nim/nvidia/containers/parakeet-0-6b-ctc-en-us/-)

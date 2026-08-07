@@ -56,7 +56,8 @@ Launch one L4 instance at least a day before the workshop and run
 entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
 confirm Lab 2 selects by `val_wer` and saves a complete `.nemo` checkpoint.
 Model, dataset, and container downloads make the first run slower than later
-runs. In Lab 3, confirm `riva-build` creates the RMIR, `riva-deploy` generates
-the target-GPU repository, `custom_model.tar.gz` is served by the ASR NIM, and
+runs. In Lab 3, confirm `nemo2riva` creates the `.riva` archive, `riva-build`
+creates the RMIR, `riva-deploy` generates the target-GPU repository,
+`custom_model.tar.gz` is served by the ASR NIM, and
 the Riva gRPC client returns a transcript. If EKS is demonstrated, prepare that
 cluster, S3 RMIR, and chart credentials separately.
