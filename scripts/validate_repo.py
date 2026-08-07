@@ -107,6 +107,8 @@ def main() -> int:
     assert "start_riva.sh" in riva_source
     assert "riva.client.ASRService" in riva_source
     assert "offline_recognize" in riva_source
+    assert "RIVA_URI = '127.0.0.1:50051'" in riva_source
+    assert "localhost:50051" not in riva_source
     assert "CHECK_EKS_PREREQUISITES = False" in riva_source
 
     riva_build_text = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(
@@ -123,6 +125,10 @@ def main() -> int:
     assert "--max-dim 1000" in riva_build_text
     assert "speech_recognition" in riva_build_text
     assert "--decoder_type=greedy" in riva_build_text
+    assert "--endpointing.residue_blanks_at_start=-16" in riva_build_text
+    assert "--return_separate_utterances=True" in riva_build_text
+    assert "--nn.fp16_needs_obey_precision_pass" not in riva_build_text
+    assert "--chunk_size" not in riva_build_text
     assert "--config-path" not in riva_build_text
     assert "source_path=" not in riva_build_text
 
@@ -132,7 +138,7 @@ def main() -> int:
     assert "--entrypoint riva-deploy" in riva_start_text
     assert "custom_model.tar.gz" in riva_start_text
     assert "NIM_DISABLE_MODEL_DOWNLOAD=true" in riva_start_text
-    assert "/v1/health/ready" in riva_start_text
+    assert "http://127.0.0.1:9000/v1/health/ready" in riva_start_text
     assert "--publish 9000:9000" in riva_start_text
     assert "--publish 50051:50051" in riva_start_text
 

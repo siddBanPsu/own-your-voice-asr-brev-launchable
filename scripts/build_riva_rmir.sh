@@ -67,11 +67,7 @@ docker --config "${DOCKER_CONFIG_DIR}" run --rm --gpus '"device=0"' \
   --featurizer.precalc_norm_time_steps=0 \
   --featurizer.precalc_norm_params=False \
   --ms_per_timestep=80 \
-  --nn.fp16_needs_obey_precision_pass \
-  --chunk_size=4.8 \
-  --left_padding_size=1.6 \
-  --right_padding_size=1.6 \
-  --max_batch_size=16 \
+  --endpointing.residue_blanks_at_start=-16 \
   --decoder_type=greedy \
   --greedy_decoder.asr_model_delay=-1 \
   --language_code=nl-NL

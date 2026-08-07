@@ -60,6 +60,8 @@ and load testing.
 
 - **NGC pull denied:** verify entitlement, Catalog access, and key validity.
 - **NIM/Riva port conflict:** stop the Lab 1 NIM before Lab 3; both use 50051.
+- **Riva gRPC reports IPv6 `[::1]:50051`:** use `127.0.0.1:50051` as shown in
+  Lab 3 so the local Docker endpoint uses IPv4 explicitly.
 - **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
 - **Driver is too old for PyTorch:** confirm setup installed the `cu126` build
   and that `torch.version.cuda` reports `12.6`; do not use the default CUDA 13
