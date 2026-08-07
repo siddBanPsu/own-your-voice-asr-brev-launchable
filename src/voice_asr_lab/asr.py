@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from .audio import duration_seconds, truncate_audio
+from .audio import duration_seconds, normalize_latin_text
 from .profiles import LabProfile
 
 
@@ -112,66 +112,188 @@ def configure_trainable_parameters(model, profile: LabProfile) -> dict[str, int]
     return {"trainable": trainable, "total": total, "percent": round(100 * trainable / total, 3)}
 
 
-def evaluate_wer(model, processor, records: Iterable[dict[str, Any]], max_seconds: int) -> dict[str, Any]:
-    from jiwer import wer
+def tokenizer_coverage(processor, texts: Iterable[str]) -> dict[str, Any]:
+    tokenizer = processor.tokenizer
+    unknown_id = tokenizer.unk_token_id
+    total_tokens = 0
+    unknown_tokens = 0
+    affected_examples: list[str] = []
+    for text in texts:
+        token_ids = tokenizer(text, add_special_tokens=False).input_ids
+        total_tokens += len(token_ids)
+        count = token_ids.count(unknown_id) if unknown_id is not None else 0
+        unknown_tokens += count
+        if count and len(affected_examples) < 5:
+            affected_examples.append(text)
+    return {
+        "total_tokens": total_tokens,
+        "unknown_tokens": unknown_tokens,
+        "unknown_fraction": unknown_tokens / total_tokens if total_tokens else 0.0,
+        "affected_examples": affected_examples,
+    }
 
+
+def _ensure_duration_safe(records: Iterable[dict[str, Any]], max_seconds: int) -> None:
+    for record in records:
+        seconds = duration_seconds(record["audio"], record["sampling_rate"])
+        if seconds > max_seconds + 1e-6:
+            raise ValueError(
+                f"Record {record.get('id', '<unknown>')} is {seconds:.1f}s, above the "
+                f"{max_seconds}s limit. Filter it instead of truncating audio with a full transcript."
+            )
+
+
+def evaluate_wer(model, processor, records: Iterable[dict[str, Any]], max_seconds: int) -> dict[str, Any]:
+    from jiwer import cer, wer
+
+    records = list(records)
+    if not records:
+        raise ValueError("Evaluation requires at least one record.")
+    _ensure_duration_safe(records, max_seconds)
     references: list[str] = []
     predictions: list[str] = []
     for record in records:
-        audio = truncate_audio(record["audio"], record["sampling_rate"], max_seconds)
-        predictions.append(transcribe(model, processor, audio, record["sampling_rate"]))
+        predictions.append(
+            transcribe(model, processor, record["audio"], record["sampling_rate"])
+        )
         references.append(record["text"])
+    normalized_references = [normalize_latin_text(text) for text in references]
+    normalized_predictions = [normalize_latin_text(text) for text in predictions]
     return {
-        "wer": float(wer([text.lower() for text in references], [text.lower() for text in predictions])),
+        "wer": float(wer(normalized_references, normalized_predictions)),
+        "cer": float(cer(normalized_references, normalized_predictions)),
         "references": references,
         "predictions": predictions,
     }
 
 
-def tiny_finetune(model, processor, records: list[dict[str, Any]], profile: LabProfile) -> list[float]:
+def _snapshot_trainable_state(model) -> dict[str, Any]:
+    return {
+        name: parameter.detach().cpu().clone()
+        for name, parameter in model.named_parameters()
+        if parameter.requires_grad
+    }
+
+
+def _restore_trainable_state(model, state: dict[str, Any]) -> None:
+    _, unexpected = model.load_state_dict(state, strict=False)
+    if unexpected:
+        raise RuntimeError(f"Unexpected best-checkpoint keys: {unexpected}")
+
+
+def _set_training_mode(model, profile: LabProfile) -> None:
+    model.train()
+    if profile.trainable_encoder_layers != -1:
+        model.encoder.eval()
+
+
+def fine_tune_with_validation(
+    model,
+    processor,
+    train_records: list[dict[str, Any]],
+    validation_records: list[dict[str, Any]],
+    profile: LabProfile,
+    *,
+    eval_every: int,
+    baseline_metrics: dict[str, Any] | None = None,
+    seed: int = 7,
+    gradient_clip_norm: float = 1.0,
+) -> dict[str, Any]:
     import torch
 
-    random.seed(7)
+    if not train_records:
+        raise ValueError("Training requires at least one record.")
+    if eval_every < 1:
+        raise ValueError("eval_every must be positive.")
+    if profile.train_batch_size > len(train_records):
+        raise ValueError("Training batch size cannot exceed the training record count.")
+    _ensure_duration_safe(train_records, profile.max_audio_seconds)
+    _ensure_duration_safe(validation_records, profile.max_audio_seconds)
+
     trainable = [parameter for parameter in model.parameters() if parameter.requires_grad]
     if not trainable:
         raise RuntimeError("No trainable parameters. Run configure_trainable_parameters first.")
     optimizer = torch.optim.AdamW(trainable, lr=profile.learning_rate)
     use_scaler = cuda_dtype() == torch.float16
     scaler = torch.amp.GradScaler("cuda", enabled=use_scaler)
-
-    model.train()
-    if profile.trainable_encoder_layers != -1:
-        model.encoder.eval()
     if profile.gradient_checkpointing and profile.trainable_encoder_layers == -1:
         model.gradient_checkpointing_enable()
 
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    rng = random.Random(seed)
+    order = list(range(len(train_records)))
+    rng.shuffle(order)
+    cursor = 0
+
+    baseline = baseline_metrics or evaluate_wer(
+        model, processor, validation_records, profile.max_audio_seconds
+    )
+    best_step = 0
+    best_wer = baseline["wer"]
+    best_cer = baseline["cer"]
+    best_state = _snapshot_trainable_state(model)
     losses: list[float] = []
-    for step in range(profile.train_steps):
-        start = (step * profile.train_batch_size) % len(records)
-        batch_records = [records[(start + offset) % len(records)] for offset in range(profile.train_batch_size)]
+    validation_history = [
+        {"step": 0, "wer": best_wer, "cer": best_cer}
+    ]
+
+    _set_training_mode(model, profile)
+    for step in range(1, profile.train_steps + 1):
+        if cursor + profile.train_batch_size > len(order):
+            rng.shuffle(order)
+            cursor = 0
+        indices = order[cursor : cursor + profile.train_batch_size]
+        cursor += profile.train_batch_size
+        batch_records = [train_records[index] for index in indices]
         sample_rates = {record["sampling_rate"] for record in batch_records}
         if len(sample_rates) != 1:
             raise ValueError("All records in a training batch must share one sample rate.")
-        audio = [
-            truncate_audio(record["audio"], record["sampling_rate"], profile.max_audio_seconds)
-            for record in batch_records
-        ]
-        text = [record["text"] for record in batch_records]
         inputs = processor_inputs(
             processor,
-            audio,
+            [record["audio"] for record in batch_records],
             sample_rates.pop(),
-            text=text,
+            text=[record["text"] for record in batch_records],
         )
         optimizer.zero_grad(set_to_none=True)
         with torch.autocast(device_type="cuda", dtype=cuda_dtype()):
             loss = model(**inputs).loss
         scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(trainable, gradient_clip_norm)
         scaler.step(optimizer)
         scaler.update()
         losses.append(float(loss.detach().cpu()))
+
+        if step % eval_every == 0 or step == profile.train_steps:
+            model.eval()
+            metrics = evaluate_wer(
+                model, processor, validation_records, profile.max_audio_seconds
+            )
+            validation_history.append(
+                {"step": step, "wer": metrics["wer"], "cer": metrics["cer"]}
+            )
+            print(
+                f"step={step} loss={losses[-1]:.4f} "
+                f"validation_wer={metrics['wer']:.4f} validation_cer={metrics['cer']:.4f}"
+            )
+            if (metrics["wer"], metrics["cer"]) < (best_wer, best_cer):
+                best_step = step
+                best_wer = metrics["wer"]
+                best_cer = metrics["cer"]
+                best_state = _snapshot_trainable_state(model)
+            if step != profile.train_steps:
+                _set_training_mode(model, profile)
+
+    _restore_trainable_state(model, best_state)
     model.eval()
-    return losses
+    return {
+        "losses": losses,
+        "validation_history": validation_history,
+        "best_step": best_step,
+        "best_wer": best_wer,
+        "best_cer": best_cer,
+    }
 
 
 def save_trainable_state(model, path: str | Path) -> Path:

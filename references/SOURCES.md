@@ -3,7 +3,7 @@
 The lab sequence follows the event brief:
 
 1. Deploy Parakeet on the AWS G6/L4 target.
-2. Fine-tune a Parakeet/Nemotron-family ASR model for domain speech.
+2. Fine-tune a Parakeet/Nemotron-family ASR model for Dutch speech with held-out evaluation.
 3. Apply ONNX and NVIDIA Triton runtime patterns.
 
 Implementation references:
@@ -11,6 +11,7 @@ Implementation references:
 - [NVIDIA Brev Launchables](https://docs.nvidia.com/brev/concepts/launchables)
 - [NVIDIA Brev environments](https://docs.nvidia.com/brev/concepts/environments)
 - [NVIDIA Parakeet CTC 0.6B model files](https://huggingface.co/nvidia/parakeet-ctc-0.6b)
+- [Google FLEURS dataset and official language splits](https://huggingface.co/datasets/google/fleurs)
 - [Parakeet architecture and Transformers API](https://huggingface.co/docs/transformers/model_doc/parakeet)
 - [NVIDIA NeMo Speech ASR overview](https://docs.nvidia.com/nemo/speech/nightly/asr/intro.html)
 - [NVIDIA NeMo Speech fine-tuning](https://docs.nvidia.com/nemo/speech/nightly/asr/fine_tuning.html)
@@ -25,4 +26,6 @@ Implementation references:
 
 Lab 1 uses the licensed Speech NIM container and requires NGC access. Labs 2-3
 use the open Parakeet weights for customization and ONNX/Triton learning. A
-locally customized checkpoint is not automatically a supported NIM package.
+locally customized Dutch checkpoint is not automatically a supported NIM
+package. Lab 2 keeps FLEURS train, validation, and test separate and reports an
+English-forgetting guardrail.

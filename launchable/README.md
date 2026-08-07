@@ -34,5 +34,6 @@ repository, notebook, Launchable parameter default, or setup script.
 
 Launch one L4 instance at least a day before the workshop and run
 `labs/00_start_here.ipynb` followed by each lab's fast path. Confirm the NIM
-entitlement and key before the rehearsal. Model and container downloads make
-the first run slower than subsequent runs.
+entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
+confirm Lab 2 selects and saves its best validation checkpoint. Model, dataset,
+and container downloads make the first run slower than subsequent runs.

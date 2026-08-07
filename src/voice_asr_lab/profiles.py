@@ -53,7 +53,7 @@ PROFILES: dict[str, LabProfile] = {
         train_steps=12,
         learning_rate=2e-5,
         gradient_checkpointing=True,
-        description="40 GB+ GPUs: full-model workshop fine-tune.",
+        description="40 GB+ GPUs: full-model capacity; notebooks may choose fewer layers.",
     ),
 }
 

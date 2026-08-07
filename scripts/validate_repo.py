@@ -61,6 +61,17 @@ def main() -> int:
             if cell.get("cell_type") == "code":
                 compile("".join(cell.get("source", [])), f"{notebook.name}:cell-{index}", "exec")
 
+    domain_payload = json.loads(
+        (ROOT / "labs" / "02_domain_adaptation.ipynb").read_text(encoding="utf-8")
+    )
+    domain_source = "".join(
+        line for cell in domain_payload["cells"] for line in cell.get("source", [])
+    )
+    assert "LANGUAGE_CONFIG = 'nl_nl'" in domain_source
+    assert "fine_tune_with_validation" in domain_source
+    assert "baseline_test" in domain_source
+    assert "english_guardrail" in domain_source
+
     for script in sorted((ROOT / "scripts").glob("*.sh")) + [ROOT / "launchable" / "setup.sh"]:
         subprocess.run(["bash", "-n", str(script)], check=True)
 
