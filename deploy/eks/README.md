@@ -87,8 +87,9 @@ kubectl logs -n riva -l app.kubernetes.io/instance=riva-nim --tail=100
 kubectl port-forward -n riva service/riva-nim 50051:50051 9000:9000
 ```
 
-In another terminal, verify `curl -fsS http://localhost:9000/v1/health/ready`,
-then run the same Riva Python client cell from Lab 3 against `localhost:50051`.
+In another terminal, verify `curl -fsS http://127.0.0.1:9000/v1/health/ready`,
+then run the same Riva Python client cell from Lab 3 against
+`127.0.0.1:50051`.
 
 For external production traffic, use an ingress or load balancer that supports
 HTTP/2 and gRPC, add TLS, health checks, metrics, authorization, and

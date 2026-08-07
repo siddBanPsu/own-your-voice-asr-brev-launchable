@@ -11,7 +11,7 @@ RMIR_FILE="${RIVA_RMIR_FILE:-${ROOT_DIR}/artifacts/riva/own_your_voice_asr.rmir}
 MODEL_ROOT="${RIVA_MODEL_ROOT:-${ROOT_DIR}/artifacts/riva/runtime}"
 NIM_EXPORT_DIR="${RIVA_NIM_EXPORT_DIR:-${ROOT_DIR}/artifacts/riva/nim_export}"
 CONTAINER_NAME="${RIVA_CONTAINER_NAME:-own-your-voice-riva-nim}"
-READY_URL="http://localhost:9000/v1/health/ready"
+READY_URL="http://127.0.0.1:9000/v1/health/ready"
 READY_TIMEOUT_SECONDS="${RIVA_READY_TIMEOUT_SECONDS:-1800}"
 
 if docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
@@ -85,7 +85,7 @@ deadline=$((SECONDS + READY_TIMEOUT_SECONDS))
 echo "Waiting for the custom Riva ASR NIM at ${READY_URL}."
 while (( SECONDS < deadline )); do
   if curl --silent --fail "${READY_URL}" >/dev/null 2>&1; then
-    echo "Custom Riva ASR NIM is ready at HTTP localhost:9000 and gRPC localhost:50051."
+    echo "Custom Riva ASR NIM is ready at HTTP 127.0.0.1:9000 and gRPC 127.0.0.1:50051."
     exit 0
   fi
   if ! docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then

@@ -23,7 +23,8 @@ The workshop follows this NVIDIA stack boundary:
 The reference notebook uses an older NeMo 1.23 environment. This repository
 keeps its training pattern and same-tokenizer recommendation, pins NeMo 2.7.3
 and `nemo2riva` 2.22.0 for Python 3.12, exports the Parakeet CTC checkpoint with
-ONNX opset 18, and then uses the ASR NIM image's positional ServiceMaker CLI.
+ONNX opset 19 and `max_dim=1000`, and then uses the ASR NIM image's positional
+ServiceMaker CLI.
 
 ## Riva build, custom NIM deployment, and client
 
