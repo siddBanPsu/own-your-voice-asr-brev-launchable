@@ -119,7 +119,8 @@ def main() -> int:
     assert "nemo2riva" in riva_build_text
     assert "NEMO_MODEL" in riva_build_text
     assert "model.riva" in riva_build_text
-    assert "--onnx-opset 18" in riva_build_text
+    assert "--onnx-opset 19" in riva_build_text
+    assert "--max-dim 1000" in riva_build_text
     assert "speech_recognition" in riva_build_text
     assert "--decoder_type=greedy" in riva_build_text
     assert "--config-path" not in riva_build_text
@@ -149,6 +150,8 @@ def main() -> int:
     assert 'RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"' in setup_text
     assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
     assert "nemo2riva==2.22.0" in setup_text
+    assert "appdirs==1.4.4" in setup_text
+    assert "--no-build-isolation-package nvidia-pyindex" in setup_text
 
     preflight_text = (ROOT / "scripts" / "preflight.py").read_text(encoding="utf-8")
     assert '"nemo-toolkit"' in preflight_text

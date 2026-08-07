@@ -14,7 +14,8 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("ASR_NIM_TAG:-3.1.0", script)
         self.assertIn("nvcr.io/nim/nvidia/", script)
         self.assertIn("NEMO2RIVA_BIN", script)
-        self.assertIn("--onnx-opset 18", script)
+        self.assertIn("--onnx-opset 19", script)
+        self.assertIn("--max-dim 1000", script)
         self.assertIn("--entrypoint riva-build", script)
         self.assertIn("NEMO_MODEL", script)
         self.assertIn("model.riva", script)
@@ -76,6 +77,8 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn('RIVA_KERNEL_NAME="own-your-voice-riva"', setup)
         self.assertIn("nvidia-riva-client==2.26.0", setup)
         self.assertIn("nemo2riva==2.22.0", setup)
+        self.assertIn("appdirs==1.4.4", setup)
+        self.assertIn("--no-build-isolation-package nvidia-pyindex", setup)
 
     def test_setup_uses_driver_compatible_pytorch_backend(self):
         setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")

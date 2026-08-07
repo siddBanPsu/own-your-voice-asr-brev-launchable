@@ -32,7 +32,8 @@ mkdir -p "${OUTPUT_DIR}"
 echo "Exporting ${NEMO_MODEL} to ${RIVA_MODEL}"
 CUDA_VISIBLE_DEVICES=0 "${NEMO2RIVA_BIN}" \
   --key "${MODEL_KEY}" \
-  --onnx-opset 18 \
+  --onnx-opset 19 \
+  --max-dim 1000 \
   --out "${RIVA_MODEL}" \
   "${NEMO_MODEL}"
 test -s "${RIVA_MODEL}"

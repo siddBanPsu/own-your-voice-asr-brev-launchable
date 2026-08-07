@@ -75,7 +75,8 @@ and load testing.
 - **No `val_wer` checkpoint:** inspect NeMo validation logs and manifest paths;
   checkpoint selection must monitor `val_wer` with mode `min`.
 - **Riva export fails:** confirm the full `.nemo` artifact, `nemo2riva==2.22.0`,
-  free disk, and the ONNX export log before debugging the container.
+  ONNX opset 19, `max_dim=1000`, free disk, and the ONNX export log before
+  debugging the container.
 - **RMIR build fails:** confirm the `.riva` artifact, Parakeet ASR NIM 3.1.0
   image, NGC access, and `riva-build speech_recognition` log output.
 - **Riva deployment is slow:** engine generation is target-GPU work. Use the

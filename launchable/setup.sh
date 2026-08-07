@@ -75,11 +75,13 @@ PY
 retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" --upgrade \
   pip \
   setuptools \
-  wheel
+  wheel \
+  appdirs==1.4.4
 
 echo "[5/6] Installing pinned lab dependencies"
 retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   --torch-backend "${TORCH_BACKEND}" \
+  --no-build-isolation-package nvidia-pyindex \
   torch==2.13.0 \
   'nemo_toolkit[asr]==2.7.3' \
   nemo2riva==2.22.0 \
