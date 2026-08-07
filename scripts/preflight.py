@@ -18,6 +18,7 @@ from voice_asr_lab.profiles import detect_profile  # noqa: E402
 PACKAGES = [
     "torch",
     "nemo-toolkit",
+    "nemo2riva",
     "datasets",
     "jiwer",
     "librosa",

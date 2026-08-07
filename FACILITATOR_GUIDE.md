@@ -11,7 +11,7 @@
   access before Labs 1 and 3.
 - Pre-cache the Speech NIM image/model, Parakeet `.nemo` checkpoint, FLEURS
   splits, Parakeet ASR NIM 3.1.0 image, and Python dependencies.
-- Measure Lab 2 training, `.nemo` save, `riva-build`, and `riva-deploy` duration
+- Measure Lab 2 training, `.nemo` save, `nemo2riva`, `riva-build`, and `riva-deploy` duration
   on the exact event GPU. First-run downloads and TensorRT engine generation
   can dominate the schedule.
 - Keep one prewarmed instructor instance, the completed `.nemo` and RMIR
@@ -44,15 +44,17 @@ Kernel checkpoint: Lab 3 must use **Own Your Voice Riva Client**. NeMo 2.7.3
 and Riva client 2.26.0 are intentionally isolated because their Protobuf pins
 are incompatible.
 
-Checkpoint: `riva-build` creates `artifacts/riva/own_your_voice_asr.rmir`, the
+Checkpoint: `nemo2riva` creates `artifacts/riva/own_your_voice_asr.riva`,
+`riva-build` creates `artifacts/riva/own_your_voice_asr.rmir`, the
 local `riva-deploy` produces a GPU-optimized model repository, Riva becomes
 ready on port 50051, and the Python client returns a held-out transcript.
 Participants should be able to explain that Riva owns the optimized Triton
 repository and that applications use the Riva gRPC API.
 
-For the EKS discussion, map the same RMIR to the chart's `/data/rmir/<name>_v<version>/model.rmir`
-layout, GPU-specific model generation, shared storage or S3 model cache,
-homogeneous GPU nodes, HTTP/2 ingress, TLS, observability, and load testing.
+For the EKS discussion, upload the same RMIR to S3 and map it through the Speech
+NIM chart's `ngcModelConfigs`, then cover GPU-specific model generation,
+persistent caches, homogeneous GPU nodes, HTTP/2 ingress, TLS, observability,
+and load testing.
 
 ## Recovery paths
 
@@ -72,8 +74,10 @@ homogeneous GPU nodes, HTTP/2 ingress, TLS, observability, and load testing.
   kernel, and train the CTC decoder only.
 - **No `val_wer` checkpoint:** inspect NeMo validation logs and manifest paths;
   checkpoint selection must monitor `val_wer` with mode `min`.
-- **RMIR build fails:** confirm the full `.nemo` artifact, Parakeet ASR NIM 3.1.0 image,
-  NGC access, free disk, and integrated `nemo2riva` log output.
+- **Riva export fails:** confirm the full `.nemo` artifact, `nemo2riva==2.22.0`,
+  free disk, and the ONNX export log before debugging the container.
+- **RMIR build fails:** confirm the `.riva` artifact, Parakeet ASR NIM 3.1.0
+  image, NGC access, and `riva-build speech_recognition` log output.
 - **Riva deployment is slow:** engine generation is target-GPU work. Use the
   instructor's pre-generated repository only on the same GPU product.
 - **EKS pod stays initializing:** inspect `riva-model-init`, PVC mounts, RMIR

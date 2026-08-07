@@ -69,9 +69,10 @@ asks for a personal NGC API key with hidden input. The scripts use a temporary
 Docker configuration and do not add the key to the repository, notebook,
 Launchable defaults, or long-lived Docker configuration.
 
-Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 uses the
-published Parakeet 0.6B ASR NIM 3.1.0 for ServiceMaker and serving, the Riva NIM
-Helm chart 1.1.0 on EKS, and the isolated Riva Python client 2.26.0.
+Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 uses
+`nemo2riva` 2.22.0 to export the `.nemo` checkpoint, the published Parakeet 0.6B
+ASR NIM 3.1.0 for ServiceMaker and serving, the Riva NIM Helm chart 1.1.0 on
+EKS, and the isolated Riva Python client 2.26.0.
 
 ## Lab 3 deployment choices
 
@@ -96,7 +97,9 @@ bash scripts/build_riva_rmir.sh
 bash scripts/start_riva.sh
 ```
 
-`riva-deploy` optimizes the RMIR for the current GPU, packages
+The first script exports `.nemo → .riva` and calls the container's positional
+`riva-build speech_recognition` interface. `riva-deploy` then optimizes the RMIR
+for the current GPU, packages
 `custom_model.tar.gz`, and the ASR NIM serves it on HTTP port 9000 and Riva
 gRPC port 50051. Applications call Riva, not raw Triton. Stop it with:
 

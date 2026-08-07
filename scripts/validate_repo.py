@@ -115,8 +115,15 @@ def main() -> int:
     assert "--entrypoint riva-build" in riva_build_text
     assert "nvcr.io/nim/nvidia/" in riva_build_text
     assert "ASR_NIM_TAG:-3.1.0" in riva_build_text
+    assert "NEMO2RIVA_BIN" in riva_build_text
     assert "nemo2riva" in riva_build_text
-    assert "model.nemo" in riva_build_text
+    assert "NEMO_MODEL" in riva_build_text
+    assert "model.riva" in riva_build_text
+    assert "--onnx-opset 18" in riva_build_text
+    assert "speech_recognition" in riva_build_text
+    assert "--decoder_type=greedy" in riva_build_text
+    assert "--config-path" not in riva_build_text
+    assert "source_path=" not in riva_build_text
 
     riva_start_text = (ROOT / "scripts" / "start_riva.sh").read_text(
         encoding="utf-8"
@@ -130,6 +137,7 @@ def main() -> int:
 
     requirements_text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
     assert "nemo_toolkit[asr]==2.7.3" in requirements_text
+    assert "nemo2riva==2.22.0" in requirements_text
     assert "jiwer==3.1.0" in requirements_text
     assert "nvidia-riva-client" not in requirements_text
 
@@ -140,9 +148,11 @@ def main() -> int:
     assert "jiwer==4.0.0" in riva_requirements_text
     assert 'RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"' in setup_text
     assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
+    assert "nemo2riva==2.22.0" in setup_text
 
     preflight_text = (ROOT / "scripts" / "preflight.py").read_text(encoding="utf-8")
     assert '"nemo-toolkit"' in preflight_text
+    assert '"nemo2riva"' in preflight_text
     assert '"tritonclient"' not in preflight_text
 
     riva_kernelspec = riva_payload["metadata"]["kernelspec"]
