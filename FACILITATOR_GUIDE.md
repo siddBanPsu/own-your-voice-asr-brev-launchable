@@ -10,7 +10,8 @@
 - Confirm attendees can see the Jupyter CTA, select the workshop kernel and
   download the model. The preflight output must report Python 3.12.
 - Ask attendees to deploy 20-30 minutes before the lab. First-run downloads
-  include the Speech NIM container/model, open 0.6B weights, and Triton image.
+  include the Speech NIM container/model, open 0.6B weights, Dutch FLEURS, and
+  the Triton image.
 - Keep one prewarmed instructor instance and one backup Launchable link.
 
 ## Timing and checkpoints
@@ -22,11 +23,13 @@ transcript plus latency, real-time factor and throughput-x-realtime. Discuss
 why one local, single-client benchmark is not a capacity plan. Stop the NIM
 before Lab 2 so it releases GPU memory.
 
-### Lab 2: domain adaptation (75 minutes)
+### Lab 2: Dutch cross-language adaptation (75-100 minutes)
 
-Checkpoint: participants can explain the train/validation boundary, see which
-layers their GPU profile trains and save a small trainable-state checkpoint.
-Do not present the tiny sample's WER movement as a customer result.
+Checkpoint: participants can explain tokenizer coverage, see which layers their
+GPU profile trains, identify the best validation step, compare the untouched
+Dutch test result, and report the English-forgetting guardrail. Step 0 is a
+valid selection when no update improves validation. Do not present the subset
+result as a customer or multilingual-production claim.
 
 ### Lab 3: ONNX and Triton (45 minutes)
 
@@ -44,6 +47,12 @@ EKS storage, a service endpoint, health checks, metrics and autoscaling.
   support-matrix GPU; T4 does not meet the compute capability requirement.
 - **Model download is slow:** pair participants with the prewarmed instance and
   continue the architecture discussion while caches populate.
+- **FLEURS download is slow:** use the instructor's populated Hugging Face cache
+  or reduce the configurable sample counts; do not merge the official splits.
+- **Tokenizer coverage fails:** inspect the listed examples and normalization.
+  Do not train through `<unk>` labels or silently move validation into train.
+- **Dutch validation does not improve:** keep the selected step at 0 and report
+  the result honestly. Do not tune controls after inspecting the test split.
 - **CUDA is not available:** switch the notebook kernel to **Own Your Voice ASR
   Labs** and rerun `scripts/preflight.py`.
 - **Out of memory in Lab 2:** set `LAB_PROFILE=t4`, restart the kernel and rerun

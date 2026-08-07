@@ -2,8 +2,8 @@
 
 A GitHub-ready, single-GPU lab environment for the AWS + NVIDIA roadshow. The
 sequence follows the event brief: deploy Parakeet CTC 0.6B through NVIDIA
-Speech NIM, adapt the open model to domain speech, then export it to ONNX and
-serve it with NVIDIA Triton Inference Server.
+Speech NIM, adapt the open model from English to Dutch speech, then export it
+to ONNX and serve it with NVIDIA Triton Inference Server.
 
 The repository is pinned to CPython 3.12. The Brev setup script installs its
 own managed Python 3.12 runtime with `uv`, so it does not use Ubuntu 22.04's
@@ -15,11 +15,12 @@ older system Python.
 |---|---|---:|
 | 0. Start here | Verify CUDA, disk, Docker and the selected memory profile | 10 min |
 | 1. NIM deployment | Deploy Parakeet CTC 0.6B Speech NIM and benchmark its HTTP API | 75-90 min |
-| 2. Domain adaptation | Establish a held-out baseline, run a memory-aware micro-fine-tune, remeasure WER | 75 min |
+| 2. Dutch adaptation | Fine-tune on Dutch FLEURS, select on validation, test once, check English forgetting | 75-100 min |
 | 3. ONNX + Triton | Export FP16 ONNX, build a Triton model repository, call the HTTP endpoint | 45 min |
 
-The fine-tune is intentionally short. It demonstrates the production workflow;
-it is not a claim of improved domain accuracy.
+The fine-tune is configurable and longer than a smoke test, but it remains an
+educational cross-language transfer exercise rather than a production accuracy
+claim.
 
 ## GPU support
 
@@ -27,9 +28,9 @@ The profile is selected from detected GPU memory when `LAB_PROFILE=auto`.
 
 | GPU class | Profile | Lab 2 behavior |
 |---|---|---|
-| T4 16 GB | `t4` | Labs 2-3 only; Speech NIM requires compute capability 8.0+ |
-| L4/A10 20-24 GB | `l4` | Full path; NIM offline `bs=1`, then two-block adaptation |
-| A100 40/80 GB | `a100` | Full path; NIM plus full-model workshop adaptation |
+| T4 16 GB | `t4` | Labs 2-3 only; Lab 2 trains the CTC head on a smaller FLEURS subset |
+| L4/A10 20-24 GB | `l4` | Full path; NIM offline `bs=1`, then CTC head plus two encoder blocks |
+| A100 40/80 GB | `a100` | Full path; Lab 2 defaults to the same conservative two-block policy |
 
 Recommended Brev default: AWS `g6.2xlarge`, one L4, 32 GB host RAM, 150 GB
 disk. This matches the AWS G6/L4 target in the event brief. An L4 is the
@@ -59,6 +60,21 @@ The default profile is the official low-memory single-client offline profile:
 `name=parakeet-0-6b-ctc-en-us,bs=1,mode=ofl,diarizer=disabled,vad=default`.
 It exposes HTTP on port 9000 and gRPC on 50051 only inside the Brev VM. Stop the
 NIM with `bash scripts/stop_nim.sh` before Lab 2 to release GPU memory.
+
+## Configurable Dutch adaptation
+
+Lab 2 uses the official Dutch FLEURS `nl_nl` train, validation, and test
+splits. One controls cell exposes sample limits, steps, evaluation frequency,
+learning rate, and trainable layers while retaining GPU-aware defaults. The
+loader normalizes Dutch to the English checkpoint's lower-case Latin output
+contract, checks for unknown tokenizer tokens, and filters overlong recordings
+instead of truncating audio with a full transcript.
+
+Training evaluates periodically on validation and restores the best checkpoint,
+including step 0 when no update improves validation. The test split is used for
+the final comparison only, and a small English slice reports catastrophic
+forgetting. Lab 3 can export the selected open-model checkpoint, but that
+artifact is not automatically a supported Dutch Speech NIM package.
 
 ## Create the Brev Launchable
 
