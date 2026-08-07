@@ -3,13 +3,16 @@ from __future__ import annotations
 from collections.abc import Iterable
 from io import BytesIO
 import re
-from typing import Any
+from typing import Any, TYPE_CHECKING
 import unicodedata
 
-import numpy as np
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _mono_float32(array: Any) -> np.ndarray:
+    import numpy as np
+
     audio = np.asarray(array, dtype=np.float32)
     if audio.ndim == 2:
         audio = audio.mean(axis=0 if audio.shape[0] <= 8 else 1)

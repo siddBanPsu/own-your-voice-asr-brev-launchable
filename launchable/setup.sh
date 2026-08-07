@@ -76,11 +76,9 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" --upgrade \
 echo "[5/6] Installing pinned lab dependencies"
 retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   torch==2.13.0 \
-  transformers==5.14.1 \
-  accelerate==1.14.0 \
+  'nemo_toolkit[asr]==2.7.3' \
   'datasets[audio]==5.0.0' \
-  onnx==1.22.0 \
-  'tritonclient[http]==2.69.0' \
+  nvidia-riva-client==2.26.0 \
   jiwer==4.0.0 \
   librosa==0.11.0 \
   soundfile==0.13.1 \
@@ -89,7 +87,9 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   'pandas>=2.2,<3' \
   'matplotlib>=3.9,<4' \
   'ipykernel>=6.29,<7' \
-  'ipywidgets>=8.1,<9'
+  'ipywidgets>=8.1,<9' \
+  'Cython>=3.0,<4' \
+  'packaging>=24,<27'
 
 "${VENV_DIR}/bin/python" -m ipykernel install --user \
   --name "${KERNEL_NAME}" \

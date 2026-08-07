@@ -35,12 +35,17 @@ Catalog access to run the supported Parakeet CTC 0.6B Speech NIM. The notebook
 requests the key with hidden input at runtime. Do not store it in the GitHub
 repository, notebook, Launchable parameter default, or setup script.
 
+Lab 3 asks for the same class of NGC credential at runtime to pull the pinned
+Riva container. The helper scripts use a temporary Docker configuration so the
+key is not written into the attendee's long-lived Docker configuration.
+
 ## Recommended rehearsal
 
 Launch one L4 instance at least a day before the workshop and run
 `labs/00_start_here.ipynb` followed by each lab's fast path. Confirm the NIM
 entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
-confirm Lab 2 selects and saves its best validation checkpoint. Model, dataset,
-and container downloads make the first run slower than subsequent runs. In
-Lab 3, confirm the FP32 Triton transcript matches PyTorch and that the notebook
-reports zero NaN and Inf logits.
+confirm Lab 2 selects by `val_wer` and saves a complete `.nemo` checkpoint.
+Model, dataset, and container downloads make the first run slower than later
+runs. In Lab 3, confirm `riva-build` creates the RMIR, `riva-deploy` generates
+the target-GPU repository, and the Riva gRPC client returns a transcript. If
+EKS is demonstrated, prepare that cluster and model volume separately.

@@ -1,0 +1,19 @@
+# Merge this small override into the freshly fetched Riva 2.26.0 chart.
+# Configure the chart's persistentVolumeClaim fields in its full values.yaml so
+# /data/rmir/own_your_voice_asr_v1.0/model.rmir is present before installation.
+riva:
+  speechServices:
+    asr: true
+    nlp: false
+    tts: false
+
+modelRepoGenerator:
+  ngcModelConfigs:
+    tritonGroup0:
+      enabled: true
+      replicaCount: 1
+      models:
+        - own_your_voice_asr:1.0
+
+service:
+  type: ClusterIP

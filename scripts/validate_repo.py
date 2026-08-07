@@ -16,11 +16,15 @@ REQUIRED = [
     "launchable/brev-launchable.yaml",
     "scripts/start_nim.sh",
     "scripts/stop_nim.sh",
+    "scripts/build_riva_rmir.sh",
+    "scripts/start_riva.sh",
+    "scripts/stop_riva.sh",
     "labs/00_start_here.ipynb",
     "labs/01_deploy_and_benchmark.ipynb",
     "labs/02_domain_adaptation.ipynb",
-    "labs/03_onnx_triton.ipynb",
-    "triton/model_repository/parakeet_ctc/config.pbtxt",
+    "labs/03_riva_deployment.ipynb",
+    "deploy/eks/README.md",
+    "deploy/eks/values-custom-rmir.yaml",
 ]
 
 
@@ -51,6 +55,7 @@ def main() -> int:
     assert "gpu: 1x NVIDIA L4" in manifest_text
     assert "container_id: parakeet-0-6b-ctc-en-us" in manifest_text
     assert "bs=1,mode=ofl" in manifest_text
+    assert 'version: "2.26.0"' in manifest_text
 
     nim_start_text = (ROOT / "scripts" / "start_nim.sh").read_text(encoding="utf-8")
     assert nim_start_text.startswith("#!/bin/bash\n")
@@ -75,26 +80,42 @@ def main() -> int:
         line for cell in domain_payload["cells"] for line in cell.get("source", [])
     )
     assert "LANGUAGE_CONFIG = 'nl_nl'" in domain_source
-    assert "fine_tune_with_validation" in domain_source
+    assert "nemo_asr.models.ASRModel.from_pretrained" in domain_source
+    assert "nemo_tokenizer_coverage" in domain_source
+    assert "monitor='val_wer'" in domain_source
     assert "baseline_test" in domain_source
-    assert "english_guardrail" in domain_source
+    assert "selected_english" in domain_source
+    assert "model.save_to" in domain_source
 
-    triton_payload = json.loads(
-        (ROOT / "labs" / "03_onnx_triton.ipynb").read_text(encoding="utf-8")
+    riva_payload = json.loads(
+        (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
     )
-    triton_source = "".join(
-        line for cell in triton_payload["cells"] for line in cell.get("source", [])
+    riva_source = "".join(
+        line for cell in riva_payload["cells"] for line in cell.get("source", [])
     )
-    assert "export_fp32_onnx" in triton_source
-    assert "torch.float32" in triton_source
-    assert "np.isfinite(logits).all()" in triton_source
-    assert "pytorch_prediction" in triton_source
+    assert "RIVA_VERSION = '2.26.0'" in riva_source
+    assert "build_riva_rmir.sh" in riva_source
+    assert "start_riva.sh" in riva_source
+    assert "riva.client.ASRService" in riva_source
+    assert "offline_recognize" in riva_source
+    assert "CHECK_EKS_PREREQUISITES = False" in riva_source
 
-    triton_config_text = (
-        ROOT / "triton" / "model_repository" / "parakeet_ctc" / "config.pbtxt"
-    ).read_text(encoding="utf-8")
-    assert "TYPE_FP32" in triton_config_text
-    assert "TYPE_FP16" not in triton_config_text
+    riva_build_text = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "--entrypoint riva-build" in riva_build_text
+    assert "nemo2riva" in riva_build_text
+    assert "model.nemo" in riva_build_text
+
+    riva_start_text = (ROOT / "scripts" / "start_riva.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "--entrypoint riva-deploy" in riva_start_text
+    assert "--publish 50051:50051" in riva_start_text
+
+    requirements_text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    assert "nemo_toolkit[asr]==2.7.3" in requirements_text
+    assert "nvidia-riva-client==2.26.0" in requirements_text
 
     for script in sorted((ROOT / "scripts").glob("*.sh")) + [ROOT / "launchable" / "setup.sh"]:
         subprocess.run(["bash", "-n", str(script)], check=True)
@@ -102,7 +123,7 @@ def main() -> int:
     if not compileall.compile_dir(ROOT / "src", quiet=1):
         raise RuntimeError("Python source compilation failed")
 
-    print("Repository structure, Python 3.12 contract, YAML, notebooks, shell syntax and Python syntax are valid.")
+    print("Repository structure, Python 3.12, NeMo/Riva contracts, notebooks, shell syntax and Python syntax are valid.")
     return 0
 
 
