@@ -126,7 +126,8 @@ def main() -> int:
     assert "speech_recognition" in riva_build_text
     assert "--decoder_type=greedy" in riva_build_text
     assert "--endpointing.residue_blanks_at_start=-16" in riva_build_text
-    assert "--return_separate_utterances=True" in riva_build_text
+    assert "--return_separate_utterances=False" in riva_build_text
+    assert "--return_separate_utterances=True" not in riva_build_text
     assert "--nn.fp16_needs_obey_precision_pass" not in riva_build_text
     assert "--chunk_size" not in riva_build_text
     assert "--config-path" not in riva_build_text

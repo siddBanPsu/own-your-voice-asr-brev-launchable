@@ -62,7 +62,7 @@ docker --config "${DOCKER_CONFIG_DIR}" run --rm --gpus '"device=0"' \
   "/servicemaker-dev/model.riva:${MODEL_KEY}" \
   --offline \
   "--name=${PIPELINE_NAME}" \
-  --return_separate_utterances=True \
+  --return_separate_utterances=False \
   --featurizer.use_utterance_norm_params=False \
   --featurizer.precalc_norm_time_steps=0 \
   --featurizer.precalc_norm_params=False \
