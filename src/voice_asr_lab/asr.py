@@ -121,7 +121,11 @@ def evaluate_wer(model, processor, records: Iterable[dict[str, Any]], max_second
         audio = truncate_audio(record["audio"], record["sampling_rate"], max_seconds)
         predictions.append(transcribe(model, processor, audio, record["sampling_rate"]))
         references.append(record["text"])
-    return {"wer": float(wer(references, predictions)), "references": references, "predictions": predictions}
+    return {
+        "wer": float(wer([text.lower() for text in references], [text.lower() for text in predictions])),
+        "references": references,
+        "predictions": predictions,
+    }
 
 
 def tiny_finetune(model, processor, records: list[dict[str, Any]], profile: LabProfile) -> list[float]:
