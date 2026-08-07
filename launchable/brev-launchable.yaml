@@ -56,11 +56,13 @@ speech_nim:
   credential_handling: Prompt in Lab 1 at runtime; never store in Launchable or repository.
 
 riva:
-  version: "2.26.0"
+  asr_nim_image: nvcr.io/nim/nvidia/parakeet-0-6b-ctc-en-us:3.1.0
+  helm_chart: riva-nim:1.1.0
+  python_client_version: "2.26.0"
   local_api: localhost:50051
   deployable_artifact: artifacts/riva/own_your_voice_asr.rmir
-  production_path: Riva Helm chart on a pre-provisioned GPU-enabled Amazon EKS cluster
-  workshop_path: Riva Docker container on the Brev GPU
+  production_path: Speech NIM Helm chart with the custom RMIR on a pre-provisioned GPU-enabled Amazon EKS cluster
+  workshop_path: Custom Riva ASR NIM on the Brev GPU
 
 source:
   type: public_git_repository

@@ -64,21 +64,22 @@ one speech stack owns the GPU.
 ## Access requirements
 
 Lab 1 and Lab 3 require NVIDIA NGC access and the applicable NVIDIA AI
-Enterprise entitlement for the Speech NIM and Riva containers. Each notebook
+Enterprise entitlement for the Speech NIM containers. Each notebook
 asks for a personal NGC API key with hidden input. The scripts use a temporary
 Docker configuration and do not add the key to the repository, notebook,
 Launchable defaults, or long-lived Docker configuration.
 
-Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 pins the
-Riva container, Helm chart, and client to 2.26.0.
+Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 uses the
+published Parakeet 0.6B ASR NIM 3.1.0 for ServiceMaker and serving, the Riva NIM
+Helm chart 1.1.0 on EKS, and the isolated Riva Python client 2.26.0.
 
 ## Lab 3 deployment choices
 
 ### Amazon EKS — production-oriented path
 
-The RMIR from Lab 3 is staged in the Riva model volume and selected by the Riva
-Helm chart. The chart runs target-GPU optimization, generates the Triton model
-repository, starts the Riva API, and exposes a Kubernetes Service. See
+The RMIR from Lab 3 is staged in S3 and selected by the Speech NIM Helm chart.
+The chart runs target-GPU optimization, generates the Triton model repository,
+starts the Riva API, and exposes a Kubernetes Service. See
 [`deploy/eks/README.md`](deploy/eks/README.md).
 
 The repository deliberately does not create an EKS cluster. A platform owner
@@ -95,8 +96,9 @@ bash scripts/build_riva_rmir.sh
 bash scripts/start_riva.sh
 ```
 
-`riva-deploy` optimizes the RMIR for the current GPU and Riva serves the model
-on gRPC port 50051. Applications call Riva, not raw Triton. Stop it with:
+`riva-deploy` optimizes the RMIR for the current GPU, packages
+`custom_model.tar.gz`, and the ASR NIM serves it on HTTP port 9000 and Riva
+gRPC port 50051. Applications call Riva, not raw Triton. Stop it with:
 
 ```bash
 bash scripts/stop_riva.sh
@@ -139,7 +141,7 @@ python -m unittest discover -s tests
 ```
 
 A real workshop release still requires a GPU rehearsal of the exact NeMo
-version, Parakeet checkpoint, dataset size, Riva container, target GPU, RMIR
+version, Parakeet checkpoint, dataset size, ASR NIM image, target GPU, RMIR
 build time, engine-generation time, Riva transcript, and EKS chart/storage
 configuration. Do not describe static checks as a live Riva or EKS deployment.
 

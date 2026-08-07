@@ -10,14 +10,14 @@
 - Confirm instructor and attendees have the required NVIDIA AI Enterprise/NGC
   access before Labs 1 and 3.
 - Pre-cache the Speech NIM image/model, Parakeet `.nemo` checkpoint, FLEURS
-  splits, Riva 2.26.0 image, and Python dependencies.
+  splits, Parakeet ASR NIM 3.1.0 image, and Python dependencies.
 - Measure Lab 2 training, `.nemo` save, `riva-build`, and `riva-deploy` duration
   on the exact event GPU. First-run downloads and TensorRT engine generation
   can dominate the schedule.
 - Keep one prewarmed instructor instance, the completed `.nemo` and RMIR
   artifacts, and a backup Launchable link.
 - If demonstrating EKS, have a platform owner pre-provision a GPU-enabled
-  cluster, model volume, NGC secrets, and gRPC-safe access path. Do not create
+  cluster, S3 RMIR location, NGC secrets, and gRPC-safe access path. Do not create
   cloud infrastructure from attendee notebooks.
 
 ## Timing and checkpoints
@@ -72,7 +72,7 @@ homogeneous GPU nodes, HTTP/2 ingress, TLS, observability, and load testing.
   kernel, and train the CTC decoder only.
 - **No `val_wer` checkpoint:** inspect NeMo validation logs and manifest paths;
   checkpoint selection must monitor `val_wer` with mode `min`.
-- **RMIR build fails:** confirm the full `.nemo` artifact, Riva 2.26.0 image,
+- **RMIR build fails:** confirm the full `.nemo` artifact, Parakeet ASR NIM 3.1.0 image,
   NGC access, free disk, and integrated `nemo2riva` log output.
 - **Riva deployment is slow:** engine generation is target-GPU work. Use the
   instructor's pre-generated repository only on the same GPU product.

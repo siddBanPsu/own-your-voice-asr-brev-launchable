@@ -1,19 +1,34 @@
-# Merge this small override into the freshly fetched Riva 2.26.0 chart.
-# Configure the chart's persistentVolumeClaim fields in its full values.yaml so
-# /data/rmir/own_your_voice_asr_v1.0/model.rmir is present before installation.
-riva:
-  speechServices:
-    asr: true
-    nlp: false
-    tts: false
+# Values for NVIDIA's riva-nim 1.1.0 Helm chart.
+# Replace the example S3 URI and configure awsCredentials in the fetched
+# chart values before installing. Do not commit credentials.
+image:
+  repository: nvcr.io/nim/nvidia/parakeet-0-6b-ctc-en-us
+  pullPolicy: IfNotPresent
+  tag: 3.1.0
 
-modelRepoGenerator:
-  ngcModelConfigs:
-    tritonGroup0:
-      enabled: true
-      replicaCount: 1
-      models:
-        - own_your_voice_asr:1.0
+nim:
+  ngcAPISecret: ngc-api
+  httpPort: 9000
+  grpcPort: 50051
+
+imagePullSecrets:
+  - name: ngc-secret
+
+envVars:
+  NIM_TAGS_SELECTOR: name=parakeet-0-6b-ctc-en-us,mode=ofl
+
+ngcModelConfigs:
+  triton0:
+    enabled: true
+    replicaCount: 1
+    models:
+      - s3://REPLACE_ME/rmir/own_your_voice_asr.rmir
+
+resources:
+  limits:
+    nvidia.com/gpu: 1
 
 service:
   type: ClusterIP
+  httpPort: 9000
+  grpcPort: 50051

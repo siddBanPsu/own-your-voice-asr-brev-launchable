@@ -49,6 +49,8 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("selected_english", source)
         self.assertIn("model.save_to", source)
         self.assertIn("tokenizer_retrained': False", source)
+        self.assertIn("deterministic='warn'", source)
+        self.assertNotIn("deterministic=True", source)
 
 
 if __name__ == "__main__":
