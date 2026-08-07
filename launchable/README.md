@@ -32,6 +32,11 @@ under the provider's home directory and redirects `/` to Lab 0. This applies
 when managed Jupyter starts after setup; restart Jupyter once on an existing
 instance that was already running.
 
+The NeMo environment explicitly uses the official PyTorch 2.13.0 CUDA 12.6
+wheel through `uv --torch-backend cu126`. Do not remove this selector: the
+default PyPI wheel uses CUDA 13 and cannot initialize on the standard Brev
+image when its driver reports CUDA 12.7 capability.
+
 The setup script never asks for or persists a credential. Lab 1 separately
 requires NVIDIA AI Enterprise entitlement and a personal NGC API key with
 Catalog access to run the supported Parakeet CTC 0.6B Speech NIM. The notebook

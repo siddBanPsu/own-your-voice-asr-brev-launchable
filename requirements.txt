@@ -1,3 +1,4 @@
+# launchable/setup.sh installs this from the official cu126 PyTorch wheel index.
 torch==2.13.0
 nemo_toolkit[asr]==2.7.3
 datasets[audio]==5.0.0
