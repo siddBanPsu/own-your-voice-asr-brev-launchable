@@ -91,6 +91,8 @@ def main() -> int:
     assert "baseline_test" in domain_source
     assert "selected_english" in domain_source
     assert "model.save_to" in domain_source
+    assert "deterministic='warn'" in domain_source
+    assert "deterministic=True" not in domain_source
 
     riva_payload = json.loads(
         (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
