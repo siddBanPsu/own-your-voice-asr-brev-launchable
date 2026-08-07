@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
 VENV_DIR="${HOME}/.venvs/own-your-voice-asr"
@@ -83,6 +83,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   jiwer==4.0.0 \
   librosa==0.11.0 \
   soundfile==0.13.1 \
+  'requests>=2.32,<3' \
   'numpy>=2.0,<3' \
   'pandas>=2.2,<3' \
   'matplotlib>=3.9,<4' \
