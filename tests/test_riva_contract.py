@@ -10,7 +10,9 @@ class RivaContractTests(unittest.TestCase):
     def test_build_script_uses_integrated_nemo_conversion(self):
         script = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(encoding="utf-8")
         self.assertTrue(script.startswith("#!/bin/bash\n"))
-        self.assertIn("riva-speech:${RIVA_VERSION}", script)
+        self.assertIn("parakeet-0-6b-ctc-en-us", script)
+        self.assertIn("ASR_NIM_TAG:-3.1.0", script)
+        self.assertIn("nvcr.io/nim/nvidia/", script)
         self.assertIn("--entrypoint riva-build", script)
         self.assertIn("model.nemo", script)
         self.assertIn("nemo2riva", script)
@@ -21,9 +23,11 @@ class RivaContractTests(unittest.TestCase):
         script = (ROOT / "scripts" / "start_riva.sh").read_text(encoding="utf-8")
         self.assertIn("--entrypoint riva-deploy", script)
         self.assertIn("/data/models", script)
-        self.assertIn("start-riva", script)
+        self.assertIn("custom_model.tar.gz", script)
+        self.assertIn("NIM_DISABLE_MODEL_DOWNLOAD=true", script)
+        self.assertIn("/v1/health/ready", script)
+        self.assertIn("--publish 9000:9000", script)
         self.assertIn("--publish 50051:50051", script)
-        self.assertIn("--asr_service=true", script)
 
     def test_lab3_uses_riva_api_and_has_eks_path(self):
         notebook = json.loads(
@@ -32,7 +36,7 @@ class RivaContractTests(unittest.TestCase):
         source = "".join(
             line for cell in notebook["cells"] for line in cell.get("source", [])
         )
-        self.assertIn("RIVA_VERSION = '2.26.0'", source)
+        self.assertIn("ASR_NIM_TAG = '3.1.0'", source)
         self.assertIn("scripts' / 'build_riva_rmir.sh", source)
         self.assertIn("scripts' / 'start_riva.sh", source)
         self.assertIn("riva.client.ASRService", source)
@@ -45,14 +49,15 @@ class RivaContractTests(unittest.TestCase):
             "Own Your Voice Riva Client",
         )
 
-    def test_eks_override_selects_only_custom_model(self):
+    def test_eks_override_selects_custom_rmir_for_speech_nim(self):
         values = (ROOT / "deploy" / "eks" / "values-custom-rmir.yaml").read_text(
             encoding="utf-8"
         )
-        self.assertIn("own_your_voice_asr:1.0", values)
-        self.assertIn("asr: true", values)
-        self.assertIn("nlp: false", values)
-        self.assertIn("tts: false", values)
+        self.assertIn("nvcr.io/nim/nvidia/parakeet-0-6b-ctc-en-us", values)
+        self.assertIn("tag: 3.1.0", values)
+        self.assertIn("s3://REPLACE_ME/rmir/own_your_voice_asr.rmir", values)
+        self.assertIn("ngcModelConfigs:", values)
+        self.assertIn("grpcPort: 50051", values)
 
     def test_setup_opens_lab_zero_from_jupyter_root(self):
         setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")

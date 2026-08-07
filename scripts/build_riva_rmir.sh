@@ -2,8 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RIVA_VERSION="${RIVA_VERSION:-2.26.0}"
-RIVA_IMAGE="${RIVA_IMAGE:-nvcr.io/nvidia/riva/riva-speech:${RIVA_VERSION}}"
+ASR_NIM_CONTAINER_ID="${ASR_NIM_CONTAINER_ID:-parakeet-0-6b-ctc-en-us}"
+ASR_NIM_TAG="${ASR_NIM_TAG:-3.1.0}"
+ASR_NIM_IMAGE="${ASR_NIM_IMAGE:-nvcr.io/nim/nvidia/${ASR_NIM_CONTAINER_ID}:${ASR_NIM_TAG}}"
 MODEL_KEY="${RIVA_MODEL_KEY:-tlt_encode}"
 PIPELINE_NAME="${RIVA_PIPELINE_NAME:-own-your-voice-nl-asr-offline}"
 NEMO_MODEL="${NEMO_MODEL:-${ROOT_DIR}/artifacts/parakeet-ctc-0.6b-nl.nemo}"
@@ -16,7 +17,7 @@ if [[ ! -f "${NEMO_MODEL}" ]]; then
   exit 1
 fi
 if [[ -z "${NGC_API_KEY:-}" ]]; then
-  echo "NGC_API_KEY is required to pull the NVIDIA Riva container." >&2
+  echo "NGC_API_KEY is required to pull the NVIDIA ASR NIM container." >&2
   exit 1
 fi
 
@@ -38,7 +39,7 @@ docker --config "${DOCKER_CONFIG_DIR}" run --rm --gpus '"device=0"' \
   --ulimit stack=67108864 \
   --volume "${NEMO_MODEL}:/servicemaker-dev/model.nemo:ro" \
   --volume "${OUTPUT_DIR}:/servicemaker-dev/output" \
-  "${RIVA_IMAGE}" \
+  "${ASR_NIM_IMAGE}" \
   --config-path=pkg://servicemaker.configs.asr \
   --config-name=offline \
   "output_path=/servicemaker-dev/output/${RMIR_NAME}:${MODEL_KEY}" \
@@ -46,6 +47,10 @@ docker --config "${DOCKER_CONFIG_DIR}" run --rm --gpus '"device=0"' \
   offline=true \
   return_separate_utterances=true \
   decoder=greedy \
+  greedy_decoder.asr_model_delay=-1 \
+  chunk_size=4.8 \
+  left_padding_size=1.6 \
+  right_padding_size=1.6 \
   language_code=nl-NL \
   "name=${PIPELINE_NAME}" \
   force=true

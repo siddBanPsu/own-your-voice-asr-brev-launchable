@@ -44,8 +44,10 @@ requests the key with hidden input at runtime. Do not store it in the GitHub
 repository, notebook, Launchable parameter default, or setup script.
 
 Lab 3 asks for the same class of NGC credential at runtime to pull the pinned
-Riva container. The helper scripts use a temporary Docker configuration so the
-key is not written into the attendee's long-lived Docker configuration.
+Parakeet ASR NIM. The helper scripts use a temporary Docker configuration so
+the key is not written into the attendee's long-lived Docker configuration.
+Docker still prints an unencrypted-login warning for that temporary directory;
+the scripts remove the directory automatically when each command finishes.
 
 ## Recommended rehearsal
 
@@ -55,5 +57,6 @@ entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
 confirm Lab 2 selects by `val_wer` and saves a complete `.nemo` checkpoint.
 Model, dataset, and container downloads make the first run slower than later
 runs. In Lab 3, confirm `riva-build` creates the RMIR, `riva-deploy` generates
-the target-GPU repository, and the Riva gRPC client returns a transcript. If
-EKS is demonstrated, prepare that cluster and model volume separately.
+the target-GPU repository, `custom_model.tar.gz` is served by the ASR NIM, and
+the Riva gRPC client returns a transcript. If EKS is demonstrated, prepare that
+cluster, S3 RMIR, and chart credentials separately.

@@ -60,7 +60,9 @@ def main() -> int:
     assert "pytorch_cuda_backend: cu126" in manifest_text
     assert "container_id: parakeet-0-6b-ctc-en-us" in manifest_text
     assert "bs=1,mode=ofl" in manifest_text
-    assert 'version: "2.26.0"' in manifest_text
+    assert "parakeet-0-6b-ctc-en-us:3.1.0" in manifest_text
+    assert "riva-nim:1.1.0" in manifest_text
+    assert 'python_client_version: "2.26.0"' in manifest_text
 
     nim_start_text = (ROOT / "scripts" / "start_nim.sh").read_text(encoding="utf-8")
     assert nim_start_text.startswith("#!/bin/bash\n")
@@ -100,7 +102,7 @@ def main() -> int:
     riva_source = "".join(
         line for cell in riva_payload["cells"] for line in cell.get("source", [])
     )
-    assert "RIVA_VERSION = '2.26.0'" in riva_source
+    assert "ASR_NIM_TAG = '3.1.0'" in riva_source
     assert "build_riva_rmir.sh" in riva_source
     assert "start_riva.sh" in riva_source
     assert "riva.client.ASRService" in riva_source
@@ -111,6 +113,8 @@ def main() -> int:
         encoding="utf-8"
     )
     assert "--entrypoint riva-build" in riva_build_text
+    assert "nvcr.io/nim/nvidia/" in riva_build_text
+    assert "ASR_NIM_TAG:-3.1.0" in riva_build_text
     assert "nemo2riva" in riva_build_text
     assert "model.nemo" in riva_build_text
 
@@ -118,6 +122,10 @@ def main() -> int:
         encoding="utf-8"
     )
     assert "--entrypoint riva-deploy" in riva_start_text
+    assert "custom_model.tar.gz" in riva_start_text
+    assert "NIM_DISABLE_MODEL_DOWNLOAD=true" in riva_start_text
+    assert "/v1/health/ready" in riva_start_text
+    assert "--publish 9000:9000" in riva_start_text
     assert "--publish 50051:50051" in riva_start_text
 
     requirements_text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
