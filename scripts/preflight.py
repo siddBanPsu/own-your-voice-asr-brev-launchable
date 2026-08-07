@@ -17,11 +17,11 @@ from voice_asr_lab.profiles import detect_profile  # noqa: E402
 
 PACKAGES = [
     "torch",
-    "transformers",
+    "nemo-toolkit",
     "datasets",
-    "onnx",
-    "tritonclient",
     "jiwer",
+    "librosa",
+    "soundfile",
     "requests",
 ]
 

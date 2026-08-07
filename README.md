@@ -107,12 +107,14 @@ bash scripts/stop_riva.sh
 1. Push this repository to GitHub.
 2. Follow [`launchable/README.md`](launchable/README.md).
 3. Preview on the intended L4 and A100 profiles.
-4. Run all four notebooks with the **Own Your Voice ASR Labs** kernel.
+4. Run Labs 0-2 with **Own Your Voice ASR Labs**. Lab 3 records and selects the
+   separate **Own Your Voice Riva Client** kernel automatically.
 5. Share the Launchable link and ask attendees to deploy 20-30 minutes early.
 
 The setup script starts with `#!/bin/bash`, installs managed Python 3.12, and
-configures fresh managed-Jupyter sessions to open
-`labs/00_start_here.ipynb` directly.
+creates isolated NeMo and Riva client environments. This is required because
+NeMo 2.7.3 and Riva client 2.26.0 pin incompatible Protobuf versions. Fresh
+managed-Jupyter sessions open `labs/00_start_here.ipynb` directly.
 
 ## Run on an existing Brev instance
 

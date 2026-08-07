@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
     ".python-version",
     "README.md",
+    "requirements-riva-client.txt",
     "launchable/setup.sh",
     "launchable/brev-launchable.yaml",
     "scripts/start_nim.sh",
@@ -115,7 +116,24 @@ def main() -> int:
 
     requirements_text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
     assert "nemo_toolkit[asr]==2.7.3" in requirements_text
-    assert "nvidia-riva-client==2.26.0" in requirements_text
+    assert "jiwer==3.1.0" in requirements_text
+    assert "nvidia-riva-client" not in requirements_text
+
+    riva_requirements_text = (ROOT / "requirements-riva-client.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "nvidia-riva-client==2.26.0" in riva_requirements_text
+    assert "jiwer==4.0.0" in riva_requirements_text
+    assert 'RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"' in setup_text
+    assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
+
+    preflight_text = (ROOT / "scripts" / "preflight.py").read_text(encoding="utf-8")
+    assert '"nemo-toolkit"' in preflight_text
+    assert '"tritonclient"' not in preflight_text
+
+    riva_kernelspec = riva_payload["metadata"]["kernelspec"]
+    assert riva_kernelspec["name"] == "own-your-voice-riva"
+    assert riva_kernelspec["display_name"] == "Own Your Voice Riva Client"
 
     for script in sorted((ROOT / "scripts").glob("*.sh")) + [ROOT / "launchable" / "setup.sh"]:
         subprocess.run(["bash", "-n", str(script)], check=True)

@@ -5,7 +5,8 @@
 - Create the Brev Launchable from `launchable/` and rehearse the exact image on
   the intended L4 and A100 profiles.
 - Confirm Python 3.12, NeMo 2.7.3, CUDA, Docker, and the NVIDIA Container
-  Toolkit from the workshop kernel.
+  Toolkit from the workshop kernel. Confirm Lab 3 opens with the separate
+  **Own Your Voice Riva Client** kernel.
 - Confirm instructor and attendees have the required NVIDIA AI Enterprise/NGC
   access before Labs 1 and 3.
 - Pre-cache the Speech NIM image/model, Parakeet `.nemo` checkpoint, FLEURS
@@ -38,6 +39,10 @@ If validation or test does not improve, report it. Do not tune after repeatedly
 viewing test results and do not manufacture an improvement for the workshop.
 
 ### Lab 3: Riva build and deployment (60-90 minutes)
+
+Kernel checkpoint: Lab 3 must use **Own Your Voice Riva Client**. NeMo 2.7.3
+and Riva client 2.26.0 are intentionally isolated because their Protobuf pins
+are incompatible.
 
 Checkpoint: `riva-build` creates `artifacts/riva/own_your_voice_asr.rmir`, the
 local `riva-deploy` produces a GPU-optimized model repository, Riva becomes

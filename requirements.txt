@@ -1,8 +1,7 @@
 torch==2.13.0
 nemo_toolkit[asr]==2.7.3
 datasets[audio]==5.0.0
-nvidia-riva-client==2.26.0
-jiwer==4.0.0
+jiwer==3.1.0
 librosa==0.11.0
 soundfile==0.13.1
 requests>=2.32,<3
