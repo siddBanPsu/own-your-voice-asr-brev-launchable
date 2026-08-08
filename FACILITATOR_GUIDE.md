@@ -62,9 +62,9 @@ and load testing.
 - **NIM/Riva port conflict:** stop the Lab 1 NIM before Lab 3; both use 50051.
 - **Riva gRPC reports IPv6 `[::1]:50051`:** use `127.0.0.1:50051` as shown in
   Lab 3 so the local Docker endpoint uses IPv4 explicitly.
-- **Triton crashes in `GreedyDecoderSubword::UpdateWordTimestamps`:** rebuild
-  the RMIR from the current script. Lab 3 deliberately disables separate
-  utterance splitting for the custom Riva 2.22 greedy-decoder path.
+- **Empty Riva transcript or a crash in `GreedyDecoderSubword`:** rebuild the
+  RMIR from the current script. Lab 3 uses TensorRT FP32 for the fine-tuned
+  acoustic model so an all-blank result does not reach the timestamp decoder.
 - **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
 - **Driver is too old for PyTorch:** confirm setup installed the `cu126` build
   and that `torch.version.cuda` reports `12.6`; do not use the default CUDA 13
