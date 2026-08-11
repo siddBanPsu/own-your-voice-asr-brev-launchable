@@ -55,9 +55,11 @@ Launch one L4 instance at least a day before the workshop and run
 `labs/00_start_here.ipynb` followed by each lab's fast path. Confirm the NIM
 entitlement and key before the rehearsal. Pre-cache the Dutch FLEURS splits and
 confirm Lab 2 selects by `val_wer` and saves a complete `.nemo` checkpoint.
-Lab 2 uses the same 400/50/100 duration-filtered records, effective batch size,
-and optimizer-step count on every supported GPU profile; only the physical
-microbatch and trainable encoder tail vary with GPU memory.
+Lab 2 requests up to the same 400/50/100 duration-filtered records and uses the
+same effective batch size and optimizer-step count on every supported GPU
+profile. If fewer records meet the common duration limit, every profile uses
+the same maximum available set; only the physical microbatch and trainable
+encoder tail vary with GPU memory.
 Model, dataset, and container downloads make the first run slower than later
 runs. In Lab 3, confirm `nemo2riva` creates the `.riva` archive, `riva-build`
 creates the RMIR, `riva-deploy` generates the target-GPU repository,

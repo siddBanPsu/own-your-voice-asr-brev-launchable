@@ -1,9 +1,11 @@
 import json
 from pathlib import Path
-from types import SimpleNamespace
+import sys
+from types import ModuleType
 import unittest
+from unittest.mock import patch
 
-from voice_asr_lab.audio import normalize_latin_text
+from voice_asr_lab.audio import load_fleurs_records, normalize_latin_text
 from voice_asr_lab.nemo import nemo_tokenizer_coverage
 
 
@@ -22,6 +24,11 @@ class _FakeNeMoTokenizer:
         return [0, 1] if "unknown" in text else [1, 2]
 
 
+class _FakeDataset(list):
+    def cast_column(self, *_args, **_kwargs):
+        return self
+
+
 class DomainAdaptationContractTests(unittest.TestCase):
     def test_latin_normalization_matches_base_output_contract(self):
         self.assertEqual(normalize_latin_text("Héél goed—Ĳssel! 42"), "heel goed ijssel")
@@ -33,6 +40,28 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertEqual(report["total_tokens"], 4)
         self.assertEqual(report["unknown_tokens"], 1)
         self.assertEqual(report["affected_examples"], ["unknown text"])
+
+    def test_fleurs_limit_uses_maximum_available_records(self):
+        datasets_module = ModuleType("datasets")
+        datasets_module.Audio = lambda **_kwargs: object()
+        datasets_module.load_dataset = lambda *_args, **_kwargs: _FakeDataset(
+            [
+                {"audio": object(), "transcription": f"sample {index}", "id": index}
+                for index in range(3)
+            ]
+        )
+        with (
+            patch.dict(sys.modules, {"datasets": datasets_module}),
+            patch(
+                "voice_asr_lab.audio.decode_dataset_audio",
+                return_value=([0.0] * 16_000, 16_000),
+            ),
+            self.assertWarnsRegex(RuntimeWarning, "using all 3"),
+        ):
+            records = load_fleurs_records(
+                "nl_nl", "train", limit=4, max_audio_seconds=6
+            )
+        self.assertEqual(len(records), 3)
 
     def test_notebook_uses_nemo_fleurs_and_held_out_selection(self):
         notebook = json.loads(
@@ -65,6 +94,8 @@ class DomainAdaptationContractTests(unittest.TestCase):
             "TRAIN_BATCH_SIZE * ACCUMULATE_GRAD_BATCHES == COMMON_EFFECTIVE_BATCH_SIZE",
             source,
         )
+        self.assertIn("'train_examples': len(train_records)", source)
+        self.assertIn("'actual_examples': actual_examples", source)
         self.assertNotIn("80 if profile.name", source)
 
 
