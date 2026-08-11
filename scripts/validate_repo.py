@@ -95,6 +95,12 @@ def main() -> int:
     assert "model.save_to" in domain_source
     assert "deterministic='warn'" in domain_source
     assert "deterministic=True" not in domain_source
+    assert "TRAIN_EXAMPLES = COMMON_TRAIN_EXAMPLES" in domain_source
+    assert "VALIDATION_EXAMPLES = COMMON_VALIDATION_EXAMPLES" in domain_source
+    assert "TEST_EXAMPLES = COMMON_TEST_EXAMPLES" in domain_source
+    assert "MAX_AUDIO_SECONDS = COMMON_MAX_AUDIO_SECONDS" in domain_source
+    assert "TRAINABLE_ENCODER_LAYERS = profile.trainable_encoder_layers" in domain_source
+    assert "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps" in domain_source
 
     riva_payload = json.loads(
         (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")

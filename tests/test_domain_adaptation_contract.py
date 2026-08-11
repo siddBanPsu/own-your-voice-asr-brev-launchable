@@ -51,6 +51,21 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("tokenizer_retrained': False", source)
         self.assertIn("deterministic='warn'", source)
         self.assertNotIn("deterministic=True", source)
+        self.assertIn("TRAIN_EXAMPLES = COMMON_TRAIN_EXAMPLES", source)
+        self.assertIn("VALIDATION_EXAMPLES = COMMON_VALIDATION_EXAMPLES", source)
+        self.assertIn("TEST_EXAMPLES = COMMON_TEST_EXAMPLES", source)
+        self.assertIn("MAX_AUDIO_SECONDS = COMMON_MAX_AUDIO_SECONDS", source)
+        self.assertIn(
+            "TRAINABLE_ENCODER_LAYERS = profile.trainable_encoder_layers", source
+        )
+        self.assertIn(
+            "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps", source
+        )
+        self.assertIn(
+            "TRAIN_BATCH_SIZE * ACCUMULATE_GRAD_BATCHES == COMMON_EFFECTIVE_BATCH_SIZE",
+            source,
+        )
+        self.assertNotIn("80 if profile.name", source)
 
 
 if __name__ == "__main__":
