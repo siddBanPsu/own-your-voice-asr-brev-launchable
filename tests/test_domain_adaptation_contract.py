@@ -109,6 +109,7 @@ class DomainAdaptationContractTests(unittest.TestCase):
     def test_tensorboard_dependency_and_brev_secure_link_are_pinned(self):
         requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
         setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
         manifest = (ROOT / "launchable" / "brev-launchable.yaml").read_text(
             encoding="utf-8"
         )
@@ -118,6 +119,8 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("port: 6006", manifest)
         self.assertIn("show_as_call_to_action: false", manifest)
         self.assertIn("public_tcp_udp_ports: []", manifest)
+        self.assertIn("~/.venvs/own-your-voice-asr/bin/tensorboard", readme)
+        self.assertNotIn("python -m tensorboard", readme)
 
 
 if __name__ == "__main__":

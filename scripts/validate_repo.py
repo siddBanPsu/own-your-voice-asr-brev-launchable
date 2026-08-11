@@ -184,6 +184,10 @@ def main() -> int:
     assert "tensorboard==2.20.0" in requirements_text
     assert "nvidia-riva-client" not in requirements_text
 
+    readme_text = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "~/.venvs/own-your-voice-asr/bin/tensorboard" in readme_text
+    assert "python -m tensorboard" not in readme_text
+
     riva_requirements_text = (ROOT / "requirements-riva-client.txt").read_text(
         encoding="utf-8"
     )
