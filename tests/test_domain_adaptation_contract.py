@@ -96,7 +96,28 @@ class DomainAdaptationContractTests(unittest.TestCase):
         )
         self.assertIn("'train_examples': len(train_records)", source)
         self.assertIn("'actual_examples': actual_examples", source)
+        self.assertIn("ENABLE_TENSORBOARD = False", source)
+        self.assertIn(
+            "from lightning.pytorch.loggers import TensorBoardLogger", source
+        )
+        self.assertIn("training_logger = False", source)
+        self.assertIn("if ENABLE_TENSORBOARD:", source)
+        self.assertIn("logger=training_logger", source)
+        self.assertIn("artifacts' / 'tensorboard'", source)
         self.assertNotIn("80 if profile.name", source)
+
+    def test_tensorboard_dependency_and_brev_secure_link_are_pinned(self):
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+        setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
+        manifest = (ROOT / "launchable" / "brev-launchable.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("tensorboard==2.20.0", requirements)
+        self.assertIn("tensorboard==2.20.0", setup)
+        self.assertIn("name: tensorboard", manifest)
+        self.assertIn("port: 6006", manifest)
+        self.assertIn("show_as_call_to_action: false", manifest)
+        self.assertIn("public_tcp_udp_ports: []", manifest)
 
 
 if __name__ == "__main__":

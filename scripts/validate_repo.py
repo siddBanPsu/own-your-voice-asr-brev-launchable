@@ -64,6 +64,9 @@ def main() -> int:
     assert "parakeet-0-6b-ctc-en-us:3.1.0" in manifest_text
     assert "riva-nim:1.1.0" in manifest_text
     assert 'python_client_version: "2.26.0"' in manifest_text
+    assert "name: tensorboard" in manifest_text
+    assert "port: 6006" in manifest_text
+    assert "show_as_call_to_action: false" in manifest_text
 
     nim_start_text = (ROOT / "scripts" / "start_nim.sh").read_text(encoding="utf-8")
     assert nim_start_text.startswith("#!/bin/bash\n")
@@ -104,6 +107,12 @@ def main() -> int:
     assert "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps" in domain_source
     assert "'train_examples': len(train_records)" in domain_source
     assert "'actual_examples': actual_examples" in domain_source
+    assert "ENABLE_TENSORBOARD = False" in domain_source
+    assert "from lightning.pytorch.loggers import TensorBoardLogger" in domain_source
+    assert "training_logger = False" in domain_source
+    assert "if ENABLE_TENSORBOARD:" in domain_source
+    assert "logger=training_logger" in domain_source
+    assert "artifacts' / 'tensorboard'" in domain_source
 
     riva_payload = json.loads(
         (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
@@ -172,6 +181,7 @@ def main() -> int:
     assert "nemo_toolkit[asr]==2.7.3" in requirements_text
     assert "nemo2riva==2.22.0" in requirements_text
     assert "jiwer==3.1.0" in requirements_text
+    assert "tensorboard==2.20.0" in requirements_text
     assert "nvidia-riva-client" not in requirements_text
 
     riva_requirements_text = (ROOT / "requirements-riva-client.txt").read_text(
@@ -182,12 +192,14 @@ def main() -> int:
     assert 'RIVA_VENV_DIR="${HOME}/.venvs/own-your-voice-riva"' in setup_text
     assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
     assert "nemo2riva==2.22.0" in setup_text
+    assert "tensorboard==2.20.0" in setup_text
     assert "appdirs==1.4.4" in setup_text
     assert "--no-build-isolation-package nvidia-pyindex" in setup_text
 
     preflight_text = (ROOT / "scripts" / "preflight.py").read_text(encoding="utf-8")
     assert '"nemo-toolkit"' in preflight_text
     assert '"nemo2riva"' in preflight_text
+    assert '"tensorboard"' in preflight_text
     assert '"tritonclient"' not in preflight_text
 
     riva_kernelspec = riva_payload["metadata"]["kernelspec"]

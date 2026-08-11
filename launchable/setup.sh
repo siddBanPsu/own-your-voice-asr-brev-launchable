@@ -93,6 +93,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   'numpy>=2.0,<3' \
   'pandas>=2.2,<3' \
   'matplotlib>=3.9,<4' \
+  tensorboard==2.20.0 \
   'ipykernel>=6.29,<7' \
   'ipywidgets>=8.1,<9' \
   'Cython>=3.0,<4' \
@@ -183,6 +184,9 @@ if torch.version.cuda != "12.6":
 
 if importlib.metadata.version("nemo2riva") != "2.22.0":
     raise RuntimeError("The workshop requires nemo2riva 2.22.0.")
+
+if importlib.metadata.version("tensorboard") != "2.20.0":
+    raise RuntimeError("The workshop requires TensorBoard 2.20.0.")
 
 props = torch.cuda.get_device_properties(0)
 vram_gb = props.total_memory / 1024**3

@@ -72,6 +72,30 @@ least 150 GB disk. Recheck provider availability, price, image, and capacity
 before the event. Stop the Lab 1 NIM before training or Riva deployment so only
 one speech stack owns the GPU.
 
+## Optional TensorBoard training dashboard
+
+Lab 2 defines `ENABLE_TENSORBOARD = False`, so the default workshop run does
+not create TensorBoard event files. Set the flag to `True` before executing the
+training cell to record versioned runs under
+`artifacts/tensorboard/parakeet-nl/`. Each rerun receives a separate
+`version_N` directory.
+
+Start the dashboard from a Brev terminal with the ASR environment:
+
+```bash
+~/.venvs/own-your-voice-asr/bin/python -m tensorboard \
+  --logdir artifacts/tensorboard \
+  --host 0.0.0.0 \
+  --port 6006
+```
+
+In the Brev Launchable Network settings, add a Secure Link named
+`tensorboard` for port 6006 and leave **Show as CTA** disabled. Do not expose
+6006 as a public TCP port. Open that Secure Link after the command reports that
+TensorBoard is serving. The dashboard can show the metrics emitted by the NeMo
+Lightning module, including training loss, learning rate, and validation WER.
+It cannot reconstruct runs completed while the flag was `False`.
+
 ## Access requirements
 
 Lab 1 and Lab 3 require NVIDIA NGC access and the applicable NVIDIA AI

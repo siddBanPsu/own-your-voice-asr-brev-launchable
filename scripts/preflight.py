@@ -24,6 +24,7 @@ PACKAGES = [
     "librosa",
     "soundfile",
     "requests",
+    "tensorboard",
 ]
 
 
