@@ -14,7 +14,8 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("ASR_NIM_TAG:-3.1.0", script)
         self.assertIn("nvcr.io/nim/nvidia/", script)
         self.assertIn("NEMO2RIVA_BIN", script)
-        self.assertIn("--onnx-opset 19", script)
+        self.assertIn('ONNX_OPSET="${ONNX_OPSET:-19}"', script)
+        self.assertIn('--onnx-opset "${ONNX_OPSET}"', script)
         self.assertIn("--max-dim 1000", script)
         self.assertIn("--entrypoint riva-build", script)
         self.assertIn("NEMO_MODEL", script)
@@ -31,6 +32,18 @@ class RivaContractTests(unittest.TestCase):
         self.assertNotIn("--config-path", script)
         self.assertNotIn("source_path=", script)
         self.assertIn("own_your_voice_asr.rmir", script)
+        self.assertIn('SAVE_INTERMEDIATE_ONNX="${SAVE_INTERMEDIATE_ONNX:-0}"', script)
+        self.assertIn("scripts/export_nemo_onnx.py", script)
+        self.assertIn('test -s "${ONNX_MODEL}"', script)
+
+    def test_optional_onnx_export_uses_the_complete_nemo_checkpoint(self):
+        script = (ROOT / "scripts" / "export_nemo_onnx.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("nemo_asr.models.ASRModel.restore_from", script)
+        self.assertIn("model.export(", script)
+        self.assertIn("onnx_opset_version=args.opset", script)
+        self.assertIn("continues to package its own graph through nemo2riva", script)
 
     def test_local_riva_script_deploys_rmir_and_exposes_grpc(self):
         script = (ROOT / "scripts" / "start_riva.sh").read_text(encoding="utf-8")
@@ -60,6 +73,12 @@ class RivaContractTests(unittest.TestCase):
         self.assertNotIn("localhost:50051", source)
         self.assertIn("deploy' / 'eks'", source)
         self.assertIn("CHECK_EKS_PREREQUISITES = False", source)
+        self.assertIn("SAVE_INTERMEDIATE_ONNX = False", source)
+        self.assertIn("artifacts' / 'onnx' / 'parakeet-ctc-0.6b-nl.onnx'", source)
+        self.assertIn(
+            "'SAVE_INTERMEDIATE_ONNX': '1' if SAVE_INTERMEDIATE_ONNX else '0'",
+            source,
+        )
         self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-riva")
         self.assertEqual(
             notebook["metadata"]["kernelspec"]["display_name"],

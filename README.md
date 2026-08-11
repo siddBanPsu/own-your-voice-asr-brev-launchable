@@ -8,6 +8,7 @@ Parakeet Speech NIM baseline
 NeMo fine-tuning + held-out evaluation
         ↓
 selected .nemo checkpoint
+        ├── optional standalone ONNX copy
         ↓
 Riva ServiceMaker → RMIR
         ↓
@@ -133,6 +134,11 @@ gRPC port 50051. Applications call Riva, not raw Triton. Stop it with:
 ```bash
 bash scripts/stop_riva.sh
 ```
+
+Lab 3 also has an opt-in `SAVE_INTERMEDIATE_ONNX` control. Set it to `True` to
+retain `artifacts/onnx/parakeet-ctc-0.6b-nl.onnx` from the selected `.nemo`
+checkpoint. This is a standalone teaching and inspection artifact, adds another
+export pass, and is not consumed by the `.riva → RMIR` deployment path.
 
 ## Create the Brev Launchable
 

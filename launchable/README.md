@@ -66,3 +66,8 @@ creates the RMIR, `riva-deploy` generates the target-GPU repository,
 `custom_model.tar.gz` is served by the ASR NIM, and
 the Riva gRPC client returns a transcript. If EKS is demonstrated, prepare that
 cluster, S3 RMIR, and chart credentials separately.
+
+For an ONNX inspection exercise, set `SAVE_INTERMEDIATE_ONNX = True` in Lab 3.
+The extra NeMo export is stored at
+`artifacts/onnx/parakeet-ctc-0.6b-nl.onnx`; it is optional and does not replace
+the `.riva` archive used to build the RMIR.

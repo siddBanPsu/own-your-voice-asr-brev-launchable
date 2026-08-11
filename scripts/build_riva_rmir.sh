@@ -12,6 +12,10 @@ OUTPUT_DIR="${RIVA_OUTPUT_DIR:-${ROOT_DIR}/artifacts/riva}"
 RIVA_MODEL="${RIVA_MODEL:-${OUTPUT_DIR}/own_your_voice_asr.riva}"
 RMIR_NAME="${RIVA_RMIR_NAME:-own_your_voice_asr.rmir}"
 NEMO2RIVA_BIN="${NEMO2RIVA_BIN:-${HOME}/.venvs/own-your-voice-asr/bin/nemo2riva}"
+ASR_PYTHON="${ASR_PYTHON:-${HOME}/.venvs/own-your-voice-asr/bin/python}"
+SAVE_INTERMEDIATE_ONNX="${SAVE_INTERMEDIATE_ONNX:-0}"
+ONNX_MODEL="${ONNX_MODEL:-${ROOT_DIR}/artifacts/onnx/parakeet-ctc-0.6b-nl.onnx}"
+ONNX_OPSET="${ONNX_OPSET:-19}"
 
 if [[ ! -f "${NEMO_MODEL}" ]]; then
   echo "NeMo model not found: ${NEMO_MODEL}" >&2
@@ -27,12 +31,31 @@ if [[ ! -x "${NEMO2RIVA_BIN}" ]]; then
   echo "Rerun launchable/setup.sh, or set NEMO2RIVA_BIN to the executable." >&2
   exit 1
 fi
+if [[ "${SAVE_INTERMEDIATE_ONNX}" != "0" && "${SAVE_INTERMEDIATE_ONNX}" != "1" ]]; then
+  echo "SAVE_INTERMEDIATE_ONNX must be 0 or 1; received ${SAVE_INTERMEDIATE_ONNX}." >&2
+  exit 1
+fi
+
+if [[ "${SAVE_INTERMEDIATE_ONNX}" == "1" ]]; then
+  if [[ ! -x "${ASR_PYTHON}" ]]; then
+    echo "NeMo Python was not found at ${ASR_PYTHON}." >&2
+    echo "Rerun launchable/setup.sh, or set ASR_PYTHON to the NeMo environment." >&2
+    exit 1
+  fi
+  echo "Saving a standalone ONNX copy to ${ONNX_MODEL}"
+  "${ASR_PYTHON}" "${ROOT_DIR}/scripts/export_nemo_onnx.py" \
+    --nemo-model "${NEMO_MODEL}" \
+    --output "${ONNX_MODEL}" \
+    --opset "${ONNX_OPSET}"
+  test -s "${ONNX_MODEL}"
+  echo "Saved standalone ONNX artifact: ${ONNX_MODEL}"
+fi
 
 mkdir -p "${OUTPUT_DIR}"
 echo "Exporting ${NEMO_MODEL} to ${RIVA_MODEL}"
 CUDA_VISIBLE_DEVICES=0 "${NEMO2RIVA_BIN}" \
   --key "${MODEL_KEY}" \
-  --onnx-opset 19 \
+  --onnx-opset "${ONNX_OPSET}" \
   --max-dim 1000 \
   --out "${RIVA_MODEL}" \
   "${NEMO_MODEL}"
