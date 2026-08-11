@@ -5,6 +5,7 @@ from io import BytesIO
 import re
 from typing import Any, TYPE_CHECKING
 import unicodedata
+import warnings
 
 if TYPE_CHECKING:
     import numpy as np
@@ -110,10 +111,17 @@ def load_fleurs_records(
         )
         if len(records) == limit:
             break
-    if len(records) < limit:
+    if not records:
         raise RuntimeError(
-            f"Requested {limit} duration-safe FLEURS {split} records but found "
-            f"only {len(records)}. Increase max_audio_seconds or lower the limit."
+            f"No duration-safe FLEURS {split} records were found with the "
+            f"{max_audio_seconds}-second limit."
+        )
+    if len(records) < limit:
+        warnings.warn(
+            f"Requested up to {limit} duration-safe FLEURS {split} records, but only "
+            f"{len(records)} are available; using all {len(records)}.",
+            RuntimeWarning,
+            stacklevel=2,
         )
     return records
 
