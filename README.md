@@ -52,9 +52,18 @@ create a new native Dutch vocabulary or language model.
 
 | GPU class | Profile | NeMo behavior |
 |---|---|---|
-| T4 16 GB | `t4` | Labs 2-3 only; train the CTC decoder on a smaller subset |
+| T4 16 GB | `t4` | Labs 2-3 only; train the CTC decoder with smaller physical microbatches |
 | L4/A10 20-24 GB | `l4` | Train the decoder plus the final two encoder blocks |
 | A100 40/80 GB | `a100` | Same safe default, with room to increase the controls |
+
+Lab 2 keeps the comparison workload fixed across profiles: 400 train, 50
+validation, and 100 held-out test utterances; a common six-second duration
+limit; effective batch size four; and 400 optimizer steps. This is four
+effective passes over the training set. Physical batch size and gradient
+accumulation adapt to GPU memory, while the trainable encoder tail remains
+profile-specific. As a result, all profiles evaluate the same records and see
+the same total sample exposure, although CUDA kernels can still prevent
+bit-for-bit identical results across GPU architectures.
 
 Recommended Brev default: AWS `g6.2xlarge`, one L4, 32 GB host RAM, and at
 least 150 GB disk. Recheck provider availability, price, image, and capacity

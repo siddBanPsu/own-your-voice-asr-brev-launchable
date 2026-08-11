@@ -5,12 +5,23 @@ import os
 from typing import Any
 
 
+COMMON_TRAIN_EXAMPLES = 400
+COMMON_VALIDATION_EXAMPLES = 50
+COMMON_TEST_EXAMPLES = 100
+COMMON_MAX_AUDIO_SECONDS = 6
+COMMON_TRAIN_STEPS = 400
+COMMON_EFFECTIVE_BATCH_SIZE = 4
+COMMON_EVAL_BATCH_SIZE = 4
+COMMON_VALIDATION_EVERY_EXAMPLES = 100
+
+
 @dataclass(frozen=True)
 class LabProfile:
     name: str
     min_vram_gb: float
     trainable_encoder_layers: int
     train_batch_size: int
+    gradient_accumulation_steps: int
     max_audio_seconds: int
     train_steps: int
     learning_rate: float
@@ -27,33 +38,36 @@ PROFILES: dict[str, LabProfile] = {
         min_vram_gb=14,
         trainable_encoder_layers=0,
         train_batch_size=1,
-        max_audio_seconds=6,
-        train_steps=4,
-        learning_rate=5e-4,
+        gradient_accumulation_steps=4,
+        max_audio_seconds=COMMON_MAX_AUDIO_SECONDS,
+        train_steps=COMMON_TRAIN_STEPS,
+        learning_rate=1e-4,
         gradient_checkpointing=False,
-        description="16 GB GPUs: NeMo CTC-decoder adaptation and short audio windows.",
+        description="16 GB GPUs: common workload with CTC-decoder-only adaptation.",
     ),
     "l4": LabProfile(
         name="l4",
         min_vram_gb=20,
         trainable_encoder_layers=2,
         train_batch_size=1,
-        max_audio_seconds=10,
-        train_steps=8,
-        learning_rate=2e-4,
+        gradient_accumulation_steps=4,
+        max_audio_seconds=COMMON_MAX_AUDIO_SECONDS,
+        train_steps=COMMON_TRAIN_STEPS,
+        learning_rate=5e-5,
         gradient_checkpointing=True,
-        description="20-32 GB GPUs: NeMo CTC decoder plus the last two encoder blocks.",
+        description="20-32 GB GPUs: common workload with the decoder and last two encoder blocks.",
     ),
     "a100": LabProfile(
         name="a100",
         min_vram_gb=35,
-        trainable_encoder_layers=-1,
+        trainable_encoder_layers=2,
         train_batch_size=2,
-        max_audio_seconds=15,
-        train_steps=12,
-        learning_rate=2e-5,
+        gradient_accumulation_steps=2,
+        max_audio_seconds=COMMON_MAX_AUDIO_SECONDS,
+        train_steps=COMMON_TRAIN_STEPS,
+        learning_rate=5e-5,
         gradient_checkpointing=True,
-        description="40 GB+ GPUs: full-model capacity; the notebook keeps a conservative layer tail by default.",
+        description="40 GB+ GPUs: common workload and conservative two-block encoder tail by default.",
     ),
 }
 
