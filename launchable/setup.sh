@@ -74,7 +74,7 @@ print(f"Using Python {sys.version.split()[0]}")
 PY
 retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" --upgrade \
   pip \
-  setuptools \
+  setuptools==80.9.0 \
   wheel \
   appdirs==1.4.4
 
@@ -168,6 +168,7 @@ echo "[6/6] Verifying Python and CUDA from the lab kernel"
 import sys
 
 import importlib.metadata
+import importlib.util
 
 import torch
 
@@ -187,6 +188,12 @@ if importlib.metadata.version("nemo2riva") != "2.22.0":
 
 if importlib.metadata.version("tensorboard") != "2.20.0":
     raise RuntimeError("The workshop requires TensorBoard 2.20.0.")
+
+if importlib.metadata.version("setuptools") != "80.9.0":
+    raise RuntimeError("The workshop requires Setuptools 80.9.0 for TensorBoard.")
+
+if importlib.util.find_spec("pkg_resources") is None:
+    raise RuntimeError("TensorBoard requires pkg_resources from Setuptools 80.9.0.")
 
 props = torch.cuda.get_device_properties(0)
 vram_gb = props.total_memory / 1024**3

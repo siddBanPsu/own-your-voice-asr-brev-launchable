@@ -114,13 +114,17 @@ class DomainAdaptationContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("tensorboard==2.20.0", requirements)
+        self.assertIn("setuptools==80.9.0", requirements)
         self.assertIn("tensorboard==2.20.0", setup)
+        self.assertIn("setuptools==80.9.0", setup)
+        self.assertIn('find_spec("pkg_resources")', setup)
         self.assertIn("name: tensorboard", manifest)
         self.assertIn("port: 6006", manifest)
         self.assertIn("show_as_call_to_action: false", manifest)
         self.assertIn("public_tcp_udp_ports: []", manifest)
         self.assertIn("~/.venvs/own-your-voice-asr/bin/tensorboard", readme)
         self.assertNotIn("python -m tensorboard", readme)
+        self.assertIn("No module named 'pkg_resources'", readme)
 
 
 if __name__ == "__main__":
