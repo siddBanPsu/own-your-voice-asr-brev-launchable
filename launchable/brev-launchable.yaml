@@ -61,6 +61,7 @@ riva:
   python_client_version: "2.26.0"
   local_api: localhost:50051
   deployable_artifact: artifacts/riva/own_your_voice_asr.rmir
+  optional_inspection_artifact: artifacts/onnx/parakeet-ctc-0.6b-nl.onnx
   production_path: Speech NIM Helm chart with the custom RMIR on a pre-provisioned GPU-enabled Amazon EKS cluster
   workshop_path: Custom Riva ASR NIM on the Brev GPU
 

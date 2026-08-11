@@ -51,6 +51,12 @@ ready on port 50051, and the Python client returns a held-out transcript.
 Participants should be able to explain that Riva owns the optimized Triton
 repository and that applications use the Riva gRPC API.
 
+Optional checkpoint: set `SAVE_INTERMEDIATE_ONNX = True` before the Lab 3
+build to retain `artifacts/onnx/parakeet-ctc-0.6b-nl.onnx`. Budget for a second
+export pass and enough disk space. The file is useful for graph inspection but
+is not the input to `riva-build`; the `.riva` archive remains the supported
+ServiceMaker input in this workshop.
+
 For the EKS discussion, upload the same RMIR to S3 and map it through the Speech
 NIM chart's `ngcModelConfigs`, then cover GPU-specific model generation,
 persistent caches, homogeneous GPU nodes, HTTP/2 ingress, TLS, observability,
@@ -82,6 +88,9 @@ and load testing.
 - **Riva export fails:** confirm the full `.nemo` artifact, `nemo2riva==2.22.0`,
   ONNX opset 19, `max_dim=1000`, free disk, and the ONNX export log before
   debugging the container.
+- **Optional ONNX copy is missing:** confirm the Lab 3 toggle is `True`, the
+  NeMo environment exists at `~/.venvs/own-your-voice-asr`, and there is enough
+  disk space. This does not block Riva when the toggle remains `False`.
 - **RMIR build fails:** confirm the `.riva` artifact, Parakeet ASR NIM 3.1.0
   image, NGC access, and `riva-build speech_recognition` log output.
 - **Riva deployment is slow:** engine generation is target-GPU work. Use the

@@ -18,6 +18,7 @@ REQUIRED = [
     "scripts/start_nim.sh",
     "scripts/stop_nim.sh",
     "scripts/build_riva_rmir.sh",
+    "scripts/export_nemo_onnx.py",
     "scripts/start_riva.sh",
     "scripts/stop_riva.sh",
     "labs/00_start_here.ipynb",
@@ -118,6 +119,9 @@ def main() -> int:
     assert "RIVA_URI = '127.0.0.1:50051'" in riva_source
     assert "localhost:50051" not in riva_source
     assert "CHECK_EKS_PREREQUISITES = False" in riva_source
+    assert "SAVE_INTERMEDIATE_ONNX = False" in riva_source
+    assert "artifacts' / 'onnx' / 'parakeet-ctc-0.6b-nl.onnx'" in riva_source
+    assert "'SAVE_INTERMEDIATE_ONNX': '1' if SAVE_INTERMEDIATE_ONNX else '0'" in riva_source
 
     riva_build_text = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(
         encoding="utf-8"
@@ -129,7 +133,8 @@ def main() -> int:
     assert "nemo2riva" in riva_build_text
     assert "NEMO_MODEL" in riva_build_text
     assert "model.riva" in riva_build_text
-    assert "--onnx-opset 19" in riva_build_text
+    assert 'ONNX_OPSET="${ONNX_OPSET:-19}"' in riva_build_text
+    assert '--onnx-opset "${ONNX_OPSET}"' in riva_build_text
     assert "--max-dim 1000" in riva_build_text
     assert "speech_recognition" in riva_build_text
     assert "--decoder_type=greedy" in riva_build_text
@@ -141,6 +146,17 @@ def main() -> int:
     assert "--chunk_size" not in riva_build_text
     assert "--config-path" not in riva_build_text
     assert "source_path=" not in riva_build_text
+    assert 'SAVE_INTERMEDIATE_ONNX="${SAVE_INTERMEDIATE_ONNX:-0}"' in riva_build_text
+    assert "scripts/export_nemo_onnx.py" in riva_build_text
+    assert 'test -s "${ONNX_MODEL}"' in riva_build_text
+
+    onnx_export_text = (ROOT / "scripts" / "export_nemo_onnx.py").read_text(
+        encoding="utf-8"
+    )
+    assert "nemo_asr.models.ASRModel.restore_from" in onnx_export_text
+    assert "model.export(" in onnx_export_text
+    assert "onnx_opset_version=args.opset" in onnx_export_text
+    assert "continues to package its own graph through nemo2riva" in onnx_export_text
 
     riva_start_text = (ROOT / "scripts" / "start_riva.sh").read_text(
         encoding="utf-8"
@@ -183,6 +199,8 @@ def main() -> int:
 
     if not compileall.compile_dir(ROOT / "src", quiet=1):
         raise RuntimeError("Python source compilation failed")
+    if not compileall.compile_file(ROOT / "scripts" / "export_nemo_onnx.py", quiet=1):
+        raise RuntimeError("ONNX export helper compilation failed")
 
     print("Repository structure, Python 3.12, NeMo/Riva contracts, notebooks, shell syntax and Python syntax are valid.")
     return 0
