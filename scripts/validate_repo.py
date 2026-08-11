@@ -101,6 +101,8 @@ def main() -> int:
     assert "MAX_AUDIO_SECONDS = COMMON_MAX_AUDIO_SECONDS" in domain_source
     assert "TRAINABLE_ENCODER_LAYERS = profile.trainable_encoder_layers" in domain_source
     assert "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps" in domain_source
+    assert "'train_examples': len(train_records)" in domain_source
+    assert "'actual_examples': actual_examples" in domain_source
 
     riva_payload = json.loads(
         (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
