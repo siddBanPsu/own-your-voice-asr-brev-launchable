@@ -74,8 +74,25 @@ one speech stack owns the GPU.
 ## Access requirements
 
 Lab 1 and Lab 3 require NVIDIA NGC access and the applicable NVIDIA AI
-Enterprise entitlement for the Speech NIM containers. Each notebook
-asks for a personal NGC API key with hidden input. The scripts use a temporary
+Enterprise entitlement for the Speech NIM containers.
+
+### Get an NGC personal key before launch
+
+1. Sign in to the [NGC API Keys page](https://org.ngc.nvidia.com/setup/api-keys).
+2. Select **Generate Personal Key**, give it a descriptive workshop name, and
+   choose an appropriate expiration date.
+3. Include at least **NGC Catalog** under **Services Included**, as required by
+   the [Speech NIM access guide](https://docs.nvidia.com/nim/speech/latest/get-started/ngc-access-setup.html).
+4. Generate the key, copy it immediately, and store it in a password manager or
+   another secure location. NGC does not retain the complete key for later
+   display.
+
+A personal key authenticates the NGC account; it does not grant Speech NIM or
+NVIDIA AI Enterprise entitlement. Confirm the account can access the required
+containers before the workshop. The [NGC key documentation](https://docs.nvidia.com/ngc/latest/ngc-private-registry-user-guide.html#ngc-api-keys)
+also covers rotation, expiration, and registry authentication.
+
+Labs 1 and 3 ask for the key with hidden input. The scripts use a temporary
 Docker configuration and do not add the key to the repository, notebook,
 Launchable defaults, or long-lived Docker configuration.
 
