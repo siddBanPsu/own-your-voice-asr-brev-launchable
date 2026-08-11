@@ -40,10 +40,21 @@ wheel through `uv --torch-backend cu126`. Do not remove this selector: the
 default PyPI wheel uses CUDA 13 and cannot initialize on the standard Brev
 image when its driver reports CUDA 12.7 capability.
 
-TensorBoard 2.20.0 is installed only in the NeMo environment. Lab 2 keeps
-`ENABLE_TENSORBOARD = False` by default. When enabled, start the dashboard from
-a Brev terminal using the command in the main README, then open the port 6006
-Secure Link. Do not add port 6006 to the public TCP/UDP list.
+TensorBoard 2.20.0 and its compatible Setuptools 80.9.0 runtime are installed
+only in the NeMo environment. Lab 2 keeps `ENABLE_TENSORBOARD = False` by
+default. When enabled, start the dashboard from a Brev terminal using the
+command in the main README, then open the port 6006 Secure Link. Do not add
+port 6006 to the public TCP/UDP list.
+
+The main README deliberately changes into the repository and passes
+`"${PWD}/artifacts/tensorboard"` to TensorBoard. Do not shorten this to a
+relative `artifacts/tensorboard` path: Brev terminals can open in the user's
+home directory while Lab 2 writes beneath the repository. An existing
+Launchable provisioned with the older setup must receive the documented
+one-time Setuptools 80.9.0 repair. Pulling the updated repository does not
+rebuild its Python environment, and the VM setup script does not automatically
+run again on restart. A fresh deployment with this setup script applies and
+verifies the compatible pin automatically.
 
 The setup script never asks for or persists a credential. Lab 1 separately
 requires NVIDIA AI Enterprise entitlement and a personal NGC API key with
