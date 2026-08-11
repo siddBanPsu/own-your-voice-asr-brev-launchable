@@ -94,6 +94,7 @@ retry "${UV_BIN}" pip install --python "${VENV_DIR}/bin/python" \
   'pandas>=2.2,<3' \
   'matplotlib>=3.9,<4' \
   tensorboard==2.20.0 \
+  setuptools==80.9.0 \
   'ipykernel>=6.29,<7' \
   'ipywidgets>=8.1,<9' \
   'Cython>=3.0,<4' \

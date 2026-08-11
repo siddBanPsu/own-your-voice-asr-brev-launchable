@@ -116,7 +116,7 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("tensorboard==2.20.0", requirements)
         self.assertIn("setuptools==80.9.0", requirements)
         self.assertIn("tensorboard==2.20.0", setup)
-        self.assertIn("setuptools==80.9.0", setup)
+        self.assertGreaterEqual(setup.count("setuptools==80.9.0"), 2)
         self.assertIn('find_spec("pkg_resources")', setup)
         self.assertIn("name: tensorboard", manifest)
         self.assertIn("port: 6006", manifest)
@@ -124,7 +124,10 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("public_tcp_udp_ports: []", manifest)
         self.assertIn("~/.venvs/own-your-voice-asr/bin/tensorboard", readme)
         self.assertNotIn("python -m tensorboard", readme)
+        self.assertIn('--logdir "${PWD}/artifacts/tensorboard"', readme)
+        self.assertNotIn("--logdir artifacts/tensorboard", readme)
         self.assertIn("No module named 'pkg_resources'", readme)
+        self.assertIn("A `git pull`", readme)
 
 
 if __name__ == "__main__":

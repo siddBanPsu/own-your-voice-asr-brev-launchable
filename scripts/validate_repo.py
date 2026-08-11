@@ -188,6 +188,9 @@ def main() -> int:
     readme_text = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "~/.venvs/own-your-voice-asr/bin/tensorboard" in readme_text
     assert "python -m tensorboard" not in readme_text
+    assert '--logdir "${PWD}/artifacts/tensorboard"' in readme_text
+    assert "--logdir artifacts/tensorboard" not in readme_text
+    assert "A `git pull`" in readme_text
 
     riva_requirements_text = (ROOT / "requirements-riva-client.txt").read_text(
         encoding="utf-8"
@@ -198,7 +201,7 @@ def main() -> int:
     assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
     assert "nemo2riva==2.22.0" in setup_text
     assert "tensorboard==2.20.0" in setup_text
-    assert "setuptools==80.9.0" in setup_text
+    assert setup_text.count("setuptools==80.9.0") >= 2
     assert 'find_spec("pkg_resources")' in setup_text
     assert "appdirs==1.4.4" in setup_text
     assert "--no-build-isolation-package nvidia-pyindex" in setup_text

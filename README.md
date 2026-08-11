@@ -80,17 +80,34 @@ training cell to record versioned runs under
 `artifacts/tensorboard/parakeet-nl/`. Each rerun receives a separate
 `version_N` directory.
 
-Start the dashboard from a Brev terminal with the ASR environment:
+Start the dashboard from the repository root so TensorBoard receives the
+absolute directory that Lab 2 writes to. A standard Brev source checkout uses
+the first command below; if Jupyter shows the repository under `~/workspace`,
+change into that checkout instead.
 
 ```bash
+cd ~/own-your-voice-asr-brev-launchable
 ~/.venvs/own-your-voice-asr/bin/tensorboard \
-  --logdir artifacts/tensorboard \
+  --logdir "${PWD}/artifacts/tensorboard" \
   --host 0.0.0.0 \
   --port 6006
 ```
 
-If the Launchable was provisioned before the TensorBoard dependency fix and
-reports `No module named 'pkg_resources'`, repair the existing environment once:
+Keep that terminal running while using the dashboard. To confirm that Lab 2
+has actually written event files, run:
+
+```bash
+find "${PWD}/artifacts/tensorboard" \
+  -type f -name 'events.out.tfevents.*' -print
+```
+
+### Existing Launchables and `pkg_resources`
+
+If the Launchable was provisioned before the TensorBoard dependency fix, it
+retains the virtual environment created by the older setup script. A `git pull`
+updates repository files but does not rebuild that environment, and Brev does
+not rerun the VM setup script on restart. If TensorBoard reports
+`No module named 'pkg_resources'`, repair that existing environment once:
 
 ```bash
 ~/.local/bin/uv pip install \
@@ -98,12 +115,21 @@ reports `No module named 'pkg_resources'`, repair the existing environment once:
   setuptools==80.9.0
 ```
 
+The older setup installed the newest available Setuptools. Setuptools removed
+`pkg_resources` in version 82.0.0, but TensorBoard 2.20 still imports it. Fresh
+deployments using the updated setup pin Setuptools 80.9.0 in both installation
+phases and fail setup verification if either that version or `pkg_resources`
+is missing. A deprecation warning about `pkg_resources` is expected and is not
+a startup failure.
+
 In the Brev Launchable Network settings, add a Secure Link named
 `tensorboard` for port 6006 and leave **Show as CTA** disabled. Do not expose
 6006 as a public TCP port. Open that Secure Link after the command reports that
 TensorBoard is serving. The dashboard can show the metrics emitted by the NeMo
 Lightning module, including training loss, learning rate, and validation WER.
-It cannot reconstruct runs completed while the flag was `False`.
+It cannot reconstruct runs completed while the flag was `False`. If the
+event-file check above prints nothing, set `ENABLE_TENSORBOARD = True`, rerun
+the experiment-controls cell, and rerun the training cell.
 
 ## Access requirements
 

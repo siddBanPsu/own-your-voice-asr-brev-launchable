@@ -46,6 +46,16 @@ default. When enabled, start the dashboard from a Brev terminal using the
 command in the main README, then open the port 6006 Secure Link. Do not add
 port 6006 to the public TCP/UDP list.
 
+The main README deliberately changes into the repository and passes
+`"${PWD}/artifacts/tensorboard"` to TensorBoard. Do not shorten this to a
+relative `artifacts/tensorboard` path: Brev terminals can open in the user's
+home directory while Lab 2 writes beneath the repository. An existing
+Launchable provisioned with the older setup must receive the documented
+one-time Setuptools 80.9.0 repair. Pulling the updated repository does not
+rebuild its Python environment, and the VM setup script does not automatically
+run again on restart. A fresh deployment with this setup script applies and
+verifies the compatible pin automatically.
+
 The setup script never asks for or persists a credential. Lab 1 separately
 requires NVIDIA AI Enterprise entitlement and a personal NGC API key with
 Catalog access to run the supported Parakeet CTC 0.6B Speech NIM. The notebook
