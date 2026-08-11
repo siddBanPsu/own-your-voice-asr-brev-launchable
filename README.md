@@ -83,7 +83,7 @@ training cell to record versioned runs under
 Start the dashboard from a Brev terminal with the ASR environment:
 
 ```bash
-~/.venvs/own-your-voice-asr/bin/python -m tensorboard \
+~/.venvs/own-your-voice-asr/bin/tensorboard \
   --logdir artifacts/tensorboard \
   --host 0.0.0.0 \
   --port 6006
