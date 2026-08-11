@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import importlib.util
 import json
 from pathlib import Path
 import shutil
@@ -25,6 +26,7 @@ PACKAGES = [
     "soundfile",
     "requests",
     "tensorboard",
+    "setuptools",
 ]
 
 
@@ -42,6 +44,9 @@ def main() -> int:
     }
     for package in PACKAGES:
         checks["packages"][package] = importlib.metadata.version(package)
+
+    if importlib.util.find_spec("pkg_resources") is None:
+        raise RuntimeError("TensorBoard requires pkg_resources from Setuptools 80.9.0.")
 
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is not available in this kernel.")

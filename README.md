@@ -89,6 +89,15 @@ Start the dashboard from a Brev terminal with the ASR environment:
   --port 6006
 ```
 
+If the Launchable was provisioned before the TensorBoard dependency fix and
+reports `No module named 'pkg_resources'`, repair the existing environment once:
+
+```bash
+~/.local/bin/uv pip install \
+  --python ~/.venvs/own-your-voice-asr/bin/python \
+  setuptools==80.9.0
+```
+
 In the Brev Launchable Network settings, add a Secure Link named
 `tensorboard` for port 6006 and leave **Show as CTA** disabled. Do not expose
 6006 as a public TCP port. Open that Secure Link after the command reports that

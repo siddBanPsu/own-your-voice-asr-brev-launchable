@@ -182,6 +182,7 @@ def main() -> int:
     assert "nemo2riva==2.22.0" in requirements_text
     assert "jiwer==3.1.0" in requirements_text
     assert "tensorboard==2.20.0" in requirements_text
+    assert "setuptools==80.9.0" in requirements_text
     assert "nvidia-riva-client" not in requirements_text
 
     readme_text = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -197,6 +198,8 @@ def main() -> int:
     assert 'RIVA_KERNEL_NAME="own-your-voice-riva"' in setup_text
     assert "nemo2riva==2.22.0" in setup_text
     assert "tensorboard==2.20.0" in setup_text
+    assert "setuptools==80.9.0" in setup_text
+    assert 'find_spec("pkg_resources")' in setup_text
     assert "appdirs==1.4.4" in setup_text
     assert "--no-build-isolation-package nvidia-pyindex" in setup_text
 
@@ -204,6 +207,8 @@ def main() -> int:
     assert '"nemo-toolkit"' in preflight_text
     assert '"nemo2riva"' in preflight_text
     assert '"tensorboard"' in preflight_text
+    assert '"setuptools"' in preflight_text
+    assert 'find_spec("pkg_resources")' in preflight_text
     assert '"tritonclient"' not in preflight_text
 
     riva_kernelspec = riva_payload["metadata"]["kernelspec"]
