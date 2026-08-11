@@ -74,6 +74,9 @@ network:
     - name: jupyter
       port: 8888
       show_as_call_to_action: true
+    - name: tensorboard
+      port: 6006
+      show_as_call_to_action: false
   public_tcp_udp_ports: []
 
 launch_parameters:

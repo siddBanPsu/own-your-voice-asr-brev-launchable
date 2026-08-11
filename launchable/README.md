@@ -11,7 +11,10 @@ Launchable itself is created in the Brev Console.
 5. For **Source**, select a public Git repository and enter its URL.
 6. For **Network**, expose the managed Jupyter Secure Link on port 8888 and
    enable **Show as CTA**. On a fresh deployment, the setup script configures
-   that CTA to land directly on `labs/00_start_here.ipynb`.
+   that CTA to land directly on `labs/00_start_here.ipynb`. Add a second Secure
+   Link named `tensorboard` on port 6006, but leave **Show as CTA** disabled;
+   it remains dormant unless the optional Lab 2 logger and TensorBoard process
+   are enabled.
 7. Set the default hardware to AWS `g6.2xlarge`, one L4 GPU, 32 GB RAM and
    150 GB storage. Participants may switch to a qualifying L4/A10 or a single
    A100 for the full path. A T4 is suitable only when skipping Lab 1.
@@ -36,6 +39,11 @@ The NeMo environment explicitly uses the official PyTorch 2.13.0 CUDA 12.6
 wheel through `uv --torch-backend cu126`. Do not remove this selector: the
 default PyPI wheel uses CUDA 13 and cannot initialize on the standard Brev
 image when its driver reports CUDA 12.7 capability.
+
+TensorBoard 2.20.0 is installed only in the NeMo environment. Lab 2 keeps
+`ENABLE_TENSORBOARD = False` by default. When enabled, start the dashboard from
+a Brev terminal using the command in the main README, then open the port 6006
+Secure Link. Do not add port 6006 to the public TCP/UDP list.
 
 The setup script never asks for or persists a credential. Lab 1 separately
 requires NVIDIA AI Enterprise entitlement and a personal NGC API key with
