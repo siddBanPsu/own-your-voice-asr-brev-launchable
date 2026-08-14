@@ -56,6 +56,7 @@ create a new native Dutch vocabulary or language model.
 | T4 16 GB | `t4` | Labs 2-3 only; train the CTC decoder with smaller physical microbatches |
 | L4/A10 20-24 GB | `l4` | Train the decoder plus the final two encoder blocks |
 | A100 40/80 GB | `a100` | Same safe default, with room to increase the controls |
+| RTX PRO 6000 Blackwell 96 GB | `a100` (automatic) | Uses the same conservative training controls; setup installs a PyTorch wheel with `sm_120` kernels |
 
 Lab 2 keeps the comparison workload fixed across profiles: up to 400 train, 50
 validation, and 100 held-out test utterances; a common six-second duration
@@ -71,6 +72,33 @@ Recommended Brev default: AWS `g6.2xlarge`, one L4, 32 GB host RAM, and at
 least 150 GB disk. Recheck provider availability, price, image, and capacity
 before the event. Stop the Lab 1 NIM before training or Riva deployment so only
 one speech stack owns the GPU.
+
+### RTX PRO 6000 Blackwell on Brev
+
+The RTX PRO 6000 Blackwell Server Edition is compute capability 12.0 (`sm_120`).
+The Launchable detects that architecture and installs the PyTorch 2.13 CUDA 12.9
+wheel; other documented GPU paths continue to use CUDA 12.6. This selection is
+made by `launchable/setup.sh`, so deploy a fresh Launchable when possible.
+
+For an already-provisioned instance that has the `sm_120` compatibility warning,
+repair only the lab environment, then restart the **Own Your Voice ASR Labs**
+kernel and run the preflight check:
+
+```bash
+~/.local/bin/uv pip install \
+  --python ~/.venvs/own-your-voice-asr/bin/python \
+  --torch-backend cu129 \
+  --reinstall torch==2.13.0
+
+cd ~/own-your-voice-asr-brev-launchable
+~/.venvs/own-your-voice-asr/bin/python scripts/preflight.py
+```
+
+The successful preflight output includes `compute_capability: "12.0"` and
+`torch_supports_detected_architecture: true`. This validates the Python/torch
+path. Before an event, rehearse the Speech NIM and Riva container paths on the
+same GPU as well: TensorRT engines and generated Riva model repositories are
+GPU-specific.
 
 ## Optional TensorBoard training dashboard
 
@@ -213,10 +241,11 @@ creates isolated NeMo and Riva client environments. This is required because
 NeMo 2.7.3 and Riva client 2.26.0 pin incompatible Protobuf versions. Fresh
 managed-Jupyter sessions open `labs/00_start_here.ipynb` directly.
 
-The NeMo environment installs the official PyTorch 2.13.0 CUDA 12.6 wheel
-explicitly (`uv --torch-backend cu126`). This remains compatible with the CUDA
-12.7-capable driver in the standard Brev image instead of allowing PyPI to
-select the default CUDA 13 build.
+The NeMo environment installs PyTorch 2.13.0 with an explicit CUDA wheel:
+`cu126` for the L4/A100 path and `cu129` for RTX PRO 6000 Blackwell (`sm_120`).
+The CUDA 12.6 option remains compatible with the CUDA 12.7-capable driver in
+the standard Brev image instead of allowing PyPI to select the default CUDA 13
+build.
 
 ## Run on an existing Brev instance
 

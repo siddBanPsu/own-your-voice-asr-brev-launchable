@@ -33,13 +33,20 @@ validated_profiles:
     lab_profile: a100
     notes: Lab 2 defaults to the conservative two-block path; controls can be changed deliberately.
 
+requires_target_gpu_rehearsal:
+  - label: RTX PRO 6000 Blackwell
+    gpu: NVIDIA RTX PRO 6000 Blackwell Server Edition 96 GB
+    host_memory_gb: 32
+    lab_profile: a100
+    notes: PyTorch setup detects sm_120 and selects cu129. Rehearse every NIM/Riva path on this exact GPU before an event.
+
 software:
   mode: VM
   managed_jupyter: true
   python_version: "3.12"
   python_manager: uv
   pytorch_version: "2.13.0"
-  pytorch_cuda_backend: cu126
+  pytorch_cuda_backend: auto (cu126 for L4/A100, cu129 for sm_120)
   setup_script_file: launchable/setup.sh
   jupyter_root_candidates:
     - ~/workspace/own-your-voice-asr-brev-launchable

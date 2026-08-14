@@ -11,7 +11,8 @@ RIVA_KERNEL_DISPLAY_NAME="Own Your Voice Riva Client"
 REPOSITORY_NAME="own-your-voice-asr-brev-launchable"
 PROFILE_VALUE="${LAB_PROFILE:-auto}"
 PYTHON_VERSION="3.12"
-TORCH_BACKEND="cu126"
+TORCH_BACKEND="${LAB_TORCH_BACKEND:-auto}"
+TORCH_CUDA_VERSION=""
 UV_VERSION="0.11.32"
 UV_BIN_DIR="${HOME}/.local/bin"
 UV_BIN="${UV_BIN_DIR}/uv"
@@ -23,6 +24,38 @@ case "${PROFILE_VALUE}" in
     exit 1
     ;;
 esac
+
+select_torch_backend() {
+  local compute_capability
+
+  compute_capability="$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1 | tr -d '[:space:]')"
+  case "${TORCH_BACKEND}" in
+    auto)
+      case "${compute_capability}" in
+        12.*)
+          TORCH_BACKEND="cu129"
+          TORCH_CUDA_VERSION="12.9"
+          ;;
+        *)
+          TORCH_BACKEND="cu126"
+          TORCH_CUDA_VERSION="12.6"
+          ;;
+      esac
+      ;;
+    cu126)
+      TORCH_CUDA_VERSION="12.6"
+      ;;
+    cu129)
+      TORCH_CUDA_VERSION="12.9"
+      ;;
+    *)
+      echo "LAB_TORCH_BACKEND must be auto, cu126, or cu129; received '${TORCH_BACKEND}'." >&2
+      exit 1
+      ;;
+  esac
+
+  echo "Detected compute capability ${compute_capability}; installing PyTorch ${TORCH_BACKEND}."
+}
 
 retry() {
   local attempt=1
@@ -42,6 +75,7 @@ retry() {
 
 echo "[1/6] Checking the NVIDIA GPU"
 nvidia-smi --query-gpu=name,memory.total,compute_cap,driver_version --format=csv,noheader
+select_torch_backend
 
 echo "[2/6] Installing audio and system tools"
 retry sudo apt-get update -y
@@ -165,7 +199,9 @@ print(f"Jupyter landing page configured in {config_path}")
 PY
 
 echo "[6/6] Verifying Python and CUDA from the lab kernel"
+export WORKSHOP_TORCH_CUDA_VERSION="${TORCH_CUDA_VERSION}"
 "${VENV_DIR}/bin/python" - <<'PY'
+import os
 import sys
 
 import importlib.metadata
@@ -179,9 +215,11 @@ if sys.version_info[:2] != (3, 12):
 if not torch.cuda.is_available():
     raise RuntimeError("PyTorch cannot see the NVIDIA GPU. Check the Brev GPU and driver state.")
 
-if torch.version.cuda != "12.6":
+expected_cuda = os.environ["WORKSHOP_TORCH_CUDA_VERSION"]
+if torch.version.cuda != expected_cuda:
     raise RuntimeError(
-        f"The workshop requires the CUDA 12.6 PyTorch build; detected {torch.version.cuda}."
+        f"The workshop requires the CUDA {expected_cuda} PyTorch build for this GPU; "
+        f"detected {torch.version.cuda}."
     )
 
 if importlib.metadata.version("nemo2riva") != "2.22.0":
@@ -197,13 +235,20 @@ if importlib.util.find_spec("pkg_resources") is None:
     raise RuntimeError("TensorBoard requires pkg_resources from Setuptools 80.9.0.")
 
 props = torch.cuda.get_device_properties(0)
+capability = torch.cuda.get_device_capability(0)
+device_arch = f"sm_{capability[0]}{capability[1]}"
+if device_arch not in torch.cuda.get_arch_list():
+    raise RuntimeError(
+        f"The installed PyTorch wheel does not contain {device_arch} kernels. "
+        "Rerun setup so it can select the correct CUDA wheel for this GPU."
+    )
 vram_gb = props.total_memory / 1024**3
 if vram_gb < 14:
     raise RuntimeError(f"The labs need at least 14 GB VRAM; detected {vram_gb:.1f} GB.")
 
 print(
     f"Ready: Python {sys.version.split()[0]}, {props.name}, "
-    f"{vram_gb:.1f} GB VRAM, CUDA {torch.version.cuda}"
+    f"{vram_gb:.1f} GB VRAM, CUDA {torch.version.cuda}, {device_arch}"
 )
 PY
 

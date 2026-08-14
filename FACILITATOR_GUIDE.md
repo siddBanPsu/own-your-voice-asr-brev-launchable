@@ -72,9 +72,15 @@ and load testing.
   RMIR from the current script. Lab 3 uses TensorRT FP32 for the fine-tuned
   acoustic model so an all-blank result does not reach the timestamp decoder.
 - **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
-- **Driver is too old for PyTorch:** confirm setup installed the `cu126` build
-  and that `torch.version.cuda` reports `12.6`; do not use the default CUDA 13
-  PyPI build on an image whose driver reports CUDA 12.7 capability.
+- **Driver is too old for PyTorch:** setup selects `cu126` for the documented
+  L4/A100 paths and `cu129` for RTX PRO 6000 Blackwell (`sm_120`). Confirm that
+  `torch.version.cuda` matches the selected backend. Do not use the default
+  CUDA 13 PyPI build on an image whose driver reports CUDA 12.7 capability.
+- **RTX PRO 6000 shows an `sm_120` PyTorch warning:** the existing environment
+  still has the CUDA 12.6 wheel. Re-run Launchable setup, or use the repair
+  command in the README, restart the kernel, and rerun `scripts/preflight.py`.
+  Rehearse the NIM/Riva containers on this exact GPU before committing to it;
+  TensorRT engine generation is target-GPU work.
 - **NeMo import fails:** confirm Python 3.12 and rerun the pinned setup script;
   do not mix the archived tutorial's NeMo 1.23 install into this environment.
 - **FLEURS download is slow:** use the instructor cache or reduce only the

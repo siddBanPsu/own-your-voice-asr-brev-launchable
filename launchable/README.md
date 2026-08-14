@@ -16,8 +16,9 @@ Launchable itself is created in the Brev Console.
    it remains dormant unless the optional Lab 2 logger and TensorBoard process
    are enabled.
 7. Set the default hardware to AWS `g6.2xlarge`, one L4 GPU, 32 GB RAM and
-   150 GB storage. Participants may switch to a qualifying L4/A10 or a single
-   A100 for the full path. A T4 is suitable only when skipping Lab 1.
+   150 GB storage. Participants may switch to a qualifying L4/A10, a single
+   A100, or a single RTX PRO 6000 Blackwell for the full path. A T4 is suitable
+   only when skipping Lab 1.
 8. Add the optional launch parameter `LAB_PROFILE`, default `auto`.
 9. Keep access at **Anyone with the link** for a private roadshow, preview the
    deployment page, then create the Launchable.
@@ -35,10 +36,10 @@ under the provider's home directory and redirects `/` to Lab 0. This applies
 when managed Jupyter starts after setup; restart Jupyter once on an existing
 instance that was already running.
 
-The NeMo environment explicitly uses the official PyTorch 2.13.0 CUDA 12.6
-wheel through `uv --torch-backend cu126`. Do not remove this selector: the
-default PyPI wheel uses CUDA 13 and cannot initialize on the standard Brev
-image when its driver reports CUDA 12.7 capability.
+The NeMo environment explicitly selects the official PyTorch 2.13.0 CUDA wheel:
+`cu126` for the L4/A100 path, and `cu129` for RTX PRO 6000 Blackwell (`sm_120`).
+Do not remove this selector: the default CUDA 13 PyPI wheel can require a newer
+driver than the standard Brev image exposes.
 
 TensorBoard 2.20.0 and its compatible Setuptools 80.9.0 runtime are installed
 only in the NeMo environment. Lab 2 keeps `ENABLE_TENSORBOARD = False` by
@@ -85,6 +86,12 @@ creates the RMIR, `riva-deploy` generates the target-GPU repository,
 `custom_model.tar.gz` is served by the ASR NIM, and
 the Riva gRPC client returns a transcript. If EKS is demonstrated, prepare that
 cluster, S3 RMIR, and chart credentials separately.
+
+If the event uses an RTX PRO 6000 Blackwell instead, repeat this complete
+rehearsal on that GPU after preflight confirms `sm_120` support. The Python
+wheel selection is automated, but NIM/TensorRT and Riva engine generation must
+be validated on the target GPU; do not reuse a generated Riva repository from
+another GPU product.
 
 For an ONNX inspection exercise, set `SAVE_INTERMEDIATE_ONNX = True` in Lab 3.
 The extra NeMo export is stored at

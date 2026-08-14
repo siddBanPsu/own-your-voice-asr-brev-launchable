@@ -15,7 +15,15 @@ from voice_asr_lab.profiles import (
 
 class ProfileTests(unittest.TestCase):
     def test_profile_thresholds(self):
-        cases = [(14, "t4"), (15.9, "t4"), (20, "l4"), (24, "l4"), (35, "a100"), (80, "a100")]
+        cases = [
+            (14, "t4"),
+            (15.9, "t4"),
+            (20, "l4"),
+            (24, "l4"),
+            (35, "a100"),
+            (80, "a100"),
+            (96, "a100"),
+        ]
         for vram, expected in cases:
             with self.subTest(vram=vram):
                 self.assertEqual(profile_for_vram(vram).name, expected)
