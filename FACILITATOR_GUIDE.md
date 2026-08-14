@@ -72,6 +72,10 @@ and load testing.
   RMIR from the current script. Lab 3 uses TensorRT FP32 for the fine-tuned
   acoustic model so an all-blank result does not reach the timestamp decoder.
 - **CUDA unavailable:** select **Own Your Voice ASR Labs** and rerun preflight.
+- **L4 setup reports missing `sm_89` kernels:** update to the current setup
+  script. CUDA 8.6 cubins can execute on compute capability 8.9, so an exact
+  `torch.cuda.get_arch_list()` membership check is invalid. Current setup runs
+  a real CUDA operation instead.
 - **Driver is too old for PyTorch:** setup selects `cu126` for the documented
   L4/A100 paths and `cu129` for RTX PRO 6000 Blackwell (`sm_120`). Confirm that
   `torch.version.cuda` matches the selected backend. Do not use the default

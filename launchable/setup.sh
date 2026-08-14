@@ -237,11 +237,16 @@ if importlib.util.find_spec("pkg_resources") is None:
 props = torch.cuda.get_device_properties(0)
 capability = torch.cuda.get_device_capability(0)
 device_arch = f"sm_{capability[0]}{capability[1]}"
-if device_arch not in torch.cuda.get_arch_list():
+try:
+    cuda_smoke_value = (torch.ones(1, device="cuda") + 1).item()
+    torch.cuda.synchronize()
+except RuntimeError as exc:
     raise RuntimeError(
-        f"The installed PyTorch wheel does not contain {device_arch} kernels. "
+        f"The installed PyTorch wheel cannot execute a CUDA kernel on {device_arch}. "
         "Rerun setup so it can select the correct CUDA wheel for this GPU."
-    )
+    ) from exc
+if cuda_smoke_value != 2.0:
+    raise RuntimeError(f"The CUDA smoke test returned {cuda_smoke_value!r}; expected 2.0.")
 vram_gb = props.total_memory / 1024**3
 if vram_gb < 14:
     raise RuntimeError(f"The labs need at least 14 GB VRAM; detected {vram_gb:.1f} GB.")

@@ -49,7 +49,8 @@ def main() -> int:
     assert 'TORCH_BACKEND="cu129"' in setup_text
     assert '--torch-backend "${TORCH_BACKEND}"' in setup_text
     assert 'torch.version.cuda != expected_cuda' in setup_text
-    assert 'device_arch not in torch.cuda.get_arch_list()' in setup_text
+    assert 'torch.ones(1, device="cuda")' in setup_text
+    assert 'device_arch not in torch.cuda.get_arch_list()' not in setup_text
     assert '"${UV_BIN}" venv --managed-python --clear --python "${PYTHON_VERSION}"' in setup_text
     assert 'c.ServerApp.default_url = "/lab/tree/labs/00_start_here.ipynb?reset"' in setup_text
     assert 'c.ServerApp.root_dir = str(_workshop_root)' in setup_text
@@ -219,6 +220,7 @@ def main() -> int:
     assert '"setuptools"' in preflight_text
     assert 'setuptools_version != "80.9.0"' in preflight_text
     assert 'find_spec("pkg_resources")' in preflight_text
+    assert 'checks["cuda_smoke_test"] = "passed"' in preflight_text
     assert '"tritonclient"' not in preflight_text
 
     riva_kernelspec = riva_payload["metadata"]["kernelspec"]

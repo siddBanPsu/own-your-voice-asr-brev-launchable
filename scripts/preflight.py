@@ -64,12 +64,19 @@ def main() -> int:
     checks["compute_capability"] = f"{capability[0]}.{capability[1]}"
     checks["torch_arch_list"] = torch.cuda.get_arch_list()
     device_arch = f"sm_{capability[0]}{capability[1]}"
-    checks["torch_supports_detected_architecture"] = device_arch in checks["torch_arch_list"]
-    if not checks["torch_supports_detected_architecture"]:
+    try:
+        cuda_smoke_value = (torch.ones(1, device="cuda") + 1).item()
+        torch.cuda.synchronize()
+    except RuntimeError as exc:
+        checks["torch_supports_detected_architecture"] = False
         raise RuntimeError(
-            f"The installed PyTorch wheel does not contain {device_arch} kernels. "
-            "On an RTX PRO 6000 Blackwell, rerun the Launchable setup so it selects cu129."
-        )
+            f"The installed PyTorch wheel cannot execute a CUDA kernel on {device_arch}. "
+            "Rerun the Launchable setup so it selects the correct CUDA wheel."
+        ) from exc
+    if cuda_smoke_value != 2.0:
+        raise RuntimeError(f"The CUDA smoke test returned {cuda_smoke_value!r}; expected 2.0.")
+    checks["torch_supports_detected_architecture"] = True
+    checks["cuda_smoke_test"] = "passed"
     checks["speech_nim_supported"] = capability[0] >= 8
     checks["profile"] = detect_profile().as_dict()
 
