@@ -81,6 +81,10 @@ and load testing.
   command in the README, restart the kernel, and rerun `scripts/preflight.py`.
   Rehearse the NIM/Riva containers on this exact GPU before committing to it;
   TensorRT engine generation is target-GPU work.
+- **Blackwell torch repair removes `pkg_resources`:** the broad uv `--reinstall`
+  option refreshed torch's dependency graph and upgraded Setuptools. Restore
+  `setuptools==80.9.0`; future repairs must use `--reinstall-package torch` and
+  include the Setuptools pin as shown in the README.
 - **NeMo import fails:** confirm Python 3.12 and rerun the pinned setup script;
   do not mix the archived tutorial's NeMo 1.23 install into this environment.
 - **FLEURS download is slow:** use the instructor cache or reduce only the
