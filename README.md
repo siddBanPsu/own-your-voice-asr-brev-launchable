@@ -88,7 +88,9 @@ kernel and run the preflight check:
 ~/.local/bin/uv pip install \
   --python ~/.venvs/own-your-voice-asr/bin/python \
   --torch-backend cu129 \
-  --reinstall torch==2.13.0
+  --reinstall-package torch \
+  torch==2.13.0 \
+  setuptools==80.9.0
 
 cd ~/own-your-voice-asr-brev-launchable
 ~/.venvs/own-your-voice-asr/bin/python scripts/preflight.py
@@ -99,6 +101,10 @@ The successful preflight output includes `compute_capability: "12.0"` and
 path. Before an event, rehearse the Speech NIM and Riva container paths on the
 same GPU as well: TensorRT engines and generated Riva model repositories are
 GPU-specific.
+
+Use `--reinstall-package torch`, not the broader `--reinstall`. The latter
+refreshes every package in torch's dependency graph and can replace the pinned
+Setuptools 80.9.0 with a newer release that no longer provides `pkg_resources`.
 
 ## Optional TensorBoard training dashboard
 

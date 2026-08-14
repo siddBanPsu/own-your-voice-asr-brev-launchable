@@ -45,6 +45,12 @@ def main() -> int:
     for package in PACKAGES:
         checks["packages"][package] = importlib.metadata.version(package)
 
+    setuptools_version = checks["packages"]["setuptools"]
+    if setuptools_version != "80.9.0":
+        raise RuntimeError(
+            "TensorBoard requires Setuptools 80.9.0 in this environment; "
+            f"detected {setuptools_version}. Reinstall setuptools==80.9.0 and rerun preflight."
+        )
     if importlib.util.find_spec("pkg_resources") is None:
         raise RuntimeError("TensorBoard requires pkg_resources from Setuptools 80.9.0.")
 
