@@ -127,12 +127,6 @@ class RivaContractTests(unittest.TestCase):
         self.assertNotIn("--reinstall torch==2.13.0", readme)
         self.assertIn("setuptools==80.9.0", readme)
 
-    def test_blackwell_repair_preserves_tensorboard_setuptools_pin(self):
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("--reinstall-package torch", readme)
-        self.assertNotIn("--reinstall torch==2.13.0", readme)
-        self.assertIn("setuptools==80.9.0", readme)
-
 
 if __name__ == "__main__":
     unittest.main()

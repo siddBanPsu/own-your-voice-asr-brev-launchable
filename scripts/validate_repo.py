@@ -112,6 +112,10 @@ def main() -> int:
     assert "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps" in domain_source
     assert "'train_examples': len(train_records)" in domain_source
     assert "'actual_examples': actual_examples" in domain_source
+    assert "'validation_wer_relative_improvement_percent'" in domain_source
+    assert "'test_wer_relative_improvement_percent'" in domain_source
+    assert "'test_wer_absolute_improvement_percentage_points'" in domain_source
+    assert "'english_wer_absolute_change_percentage_points'" in domain_source
     assert "ENABLE_TENSORBOARD = False" in domain_source
     assert "from lightning.pytorch.loggers import TensorBoardLogger" in domain_source
     assert "training_logger = False" in domain_source
