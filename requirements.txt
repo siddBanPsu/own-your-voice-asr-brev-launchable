@@ -1,4 +1,5 @@
-# launchable/setup.sh installs this from the official cu126 PyTorch wheel index.
+# launchable/setup.sh selects the official cu126 wheel for the documented L4/A100
+# paths and cu129 for RTX PRO 6000 Blackwell (sm_120).
 torch==2.13.0
 nemo_toolkit[asr]==2.7.3
 nemo2riva==2.22.0

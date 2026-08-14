@@ -56,6 +56,14 @@ def main() -> int:
     checks["vram_gb"] = round(props.total_memory / 1024**3, 1)
     checks["cuda"] = torch.version.cuda
     checks["compute_capability"] = f"{capability[0]}.{capability[1]}"
+    checks["torch_arch_list"] = torch.cuda.get_arch_list()
+    device_arch = f"sm_{capability[0]}{capability[1]}"
+    checks["torch_supports_detected_architecture"] = device_arch in checks["torch_arch_list"]
+    if not checks["torch_supports_detected_architecture"]:
+        raise RuntimeError(
+            f"The installed PyTorch wheel does not contain {device_arch} kernels. "
+            "On an RTX PRO 6000 Blackwell, rerun the Launchable setup so it selects cu129."
+        )
     checks["speech_nim_supported"] = capability[0] >= 8
     checks["profile"] = detect_profile().as_dict()
 

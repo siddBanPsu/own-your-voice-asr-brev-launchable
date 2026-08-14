@@ -109,11 +109,16 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("appdirs==1.4.4", setup)
         self.assertIn("--no-build-isolation-package nvidia-pyindex", setup)
 
-    def test_setup_uses_driver_compatible_pytorch_backend(self):
+    def test_setup_selects_an_sm120_compatible_pytorch_backend(self):
         setup = (ROOT / "launchable" / "setup.sh").read_text(encoding="utf-8")
+        self.assertIn('TORCH_BACKEND="${LAB_TORCH_BACKEND:-auto}"', setup)
+        self.assertIn('12.*)', setup)
+        self.assertIn('TORCH_BACKEND="cu129"', setup)
+        self.assertIn('TORCH_CUDA_VERSION="12.9"', setup)
         self.assertIn('TORCH_BACKEND="cu126"', setup)
         self.assertIn('--torch-backend "${TORCH_BACKEND}"', setup)
-        self.assertIn('torch.version.cuda != "12.6"', setup)
+        self.assertIn('torch.version.cuda != expected_cuda', setup)
+        self.assertIn('device_arch not in torch.cuda.get_arch_list()', setup)
 
 
 if __name__ == "__main__":
