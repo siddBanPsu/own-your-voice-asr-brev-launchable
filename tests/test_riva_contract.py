@@ -118,7 +118,8 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn('TORCH_BACKEND="cu126"', setup)
         self.assertIn('--torch-backend "${TORCH_BACKEND}"', setup)
         self.assertIn('torch.version.cuda != expected_cuda', setup)
-        self.assertIn('device_arch not in torch.cuda.get_arch_list()', setup)
+        self.assertIn('torch.ones(1, device="cuda")', setup)
+        self.assertNotIn('device_arch not in torch.cuda.get_arch_list()', setup)
 
     def test_blackwell_repair_preserves_tensorboard_setuptools_pin(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
