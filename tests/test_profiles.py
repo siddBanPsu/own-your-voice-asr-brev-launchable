@@ -1,4 +1,9 @@
+from pathlib import Path
+import sys
 import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 
 from voice_asr_lab.profiles import (
     COMMON_EFFECTIVE_BATCH_SIZE,
