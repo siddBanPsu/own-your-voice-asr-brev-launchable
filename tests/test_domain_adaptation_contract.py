@@ -5,11 +5,11 @@ from types import ModuleType
 import unittest
 from unittest.mock import patch
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
 from voice_asr_lab.audio import load_fleurs_records, normalize_latin_text
 from voice_asr_lab.nemo import nemo_tokenizer_coverage
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 class _FakeSentencePiece:
