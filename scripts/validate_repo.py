@@ -202,6 +202,10 @@ def main() -> int:
     assert "A `git pull`" in readme_text
     assert "--reinstall-package torch" in readme_text
     assert "--reinstall torch==2.13.0" not in readme_text
+    assert "## Dutch FLEURS dataset subset" in readme_text
+    assert "| Train | 2,918 | 400 | 13.7% |" in readme_text
+    assert "| **Total** | **3,453** | **550** | **15.9%** |" in readme_text
+    assert "1,600 sample exposures" in readme_text
 
     riva_requirements_text = (ROOT / "requirements-riva-client.txt").read_text(
         encoding="utf-8"

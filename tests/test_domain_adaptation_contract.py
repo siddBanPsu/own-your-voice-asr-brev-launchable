@@ -132,6 +132,9 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertNotIn("--logdir artifacts/tensorboard", readme)
         self.assertIn("No module named 'pkg_resources'", readme)
         self.assertIn("A `git pull`", readme)
+        self.assertIn("## Dutch FLEURS dataset subset", readme)
+        self.assertIn("| Train | 2,918 | 400 | 13.7% |", readme)
+        self.assertIn("| **Total** | **3,453** | **550** | **15.9%** |", readme)
 
 
 if __name__ == "__main__":
