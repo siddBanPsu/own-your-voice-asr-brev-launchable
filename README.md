@@ -29,8 +29,8 @@ own managed Python 3.12 runtime with `uv`, so Ubuntu's system Python is not used
 | 2. NVIDIA NeMo | Fine-tune on Dutch FLEURS, select by `val_wer`, test once, and save a complete `.nemo` model | 75-120 min |
 | 3. NVIDIA Riva | Build an RMIR, serve locally through Riva gRPC, and map the same artifact to Riva on EKS | 60-90 min |
 
-The Dutch exercise demonstrates the customization workflow. A small cross-
-language subset is not evidence of production Dutch accuracy.
+The Dutch exercise demonstrates the customization workflow. A small Dutch
+subset and English guardrail are not evidence of production Dutch accuracy.
 
 ## Why the tokenizer is reused
 
@@ -46,6 +46,33 @@ below 50 hours. The lab therefore:
 
 This preserves the decoder shape and simplifies Riva packaging. It does not
 create a new native Dutch vocabulary or language model.
+
+## Dutch FLEURS dataset subset
+
+The complete `google/fleurs` Dutch configuration (`nl_nl`) currently contains
+3,453 recordings across its official splits. Lab 2 deliberately uses a smaller,
+bounded workshop workload:
+
+| Split | Full `nl_nl` records | Workshop maximum | Maximum portion used |
+|---|---:|---:|---:|
+| Train | 2,918 | 400 | 13.7% |
+| Validation | 171 | 50 | 29.2% |
+| Test | 364 | 100 | 27.5% |
+| **Total** | **3,453** | **550** | **15.9%** |
+
+The full counts come from the
+[`google/fleurs` dataset card](https://huggingface.co/datasets/google/fleurs/blob/main/README.md).
+They are counts before the lab's duration and text filters. For each official
+split, the loader accepts records no longer than six seconds with non-empty
+normalized text and stops when it reaches the workshop maximum. It therefore
+does not scan or count every duration-qualified Dutch record when the maximum
+is reached. The notebook prints and saves the actual counts used in each run.
+
+With effective batch size four and 400 optimizer steps, the bounded run has
+1,600 sample exposures, or approximately four passes over 400 training records.
+Using all 2,918 training rows without changing the step count would provide
+only about 0.55 passes; one nominal full-data pass would require roughly 730
+optimizer steps before accounting for the six-second filter.
 
 ## GPU profiles
 
