@@ -100,7 +100,7 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("'test_wer_relative_improvement_percent'", source)
         self.assertIn("'test_wer_absolute_improvement_percentage_points'", source)
         self.assertIn("'english_wer_absolute_change_percentage_points'", source)
-        self.assertIn("ENABLE_TENSORBOARD = False", source)
+        self.assertIn("ENABLE_TENSORBOARD = True", source)
         self.assertIn(
             "from lightning.pytorch.loggers import TensorBoardLogger", source
         )
