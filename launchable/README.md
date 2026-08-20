@@ -42,10 +42,10 @@ Do not remove this selector: the default CUDA 13 PyPI wheel can require a newer
 driver than the standard Brev image exposes.
 
 TensorBoard 2.20.0 and its compatible Setuptools 80.9.0 runtime are installed
-only in the NeMo environment. Lab 2 keeps `ENABLE_TENSORBOARD = False` by
-default. When enabled, start the dashboard from a Brev terminal using the
-command in the main README, then open the port 6006 Secure Link. Do not add
-port 6006 to the public TCP/UDP list.
+only in the NeMo environment. Lab 2 keeps `ENABLE_TENSORBOARD = True` by
+default and writes its run data locally. Start the dashboard from a Brev
+terminal using the command in the main README, then open the port 6006 Secure
+Link. Do not add port 6006 to the public TCP/UDP list.
 
 The main README deliberately changes into the repository and passes
 `"${PWD}/artifacts/tensorboard"` to TensorBoard. Do not shorten this to a

@@ -133,13 +133,14 @@ Use `--reinstall-package torch`, not the broader `--reinstall`. The latter
 refreshes every package in torch's dependency graph and can replace the pinned
 Setuptools 80.9.0 with a newer release that no longer provides `pkg_resources`.
 
-## Optional TensorBoard training dashboard
+## TensorBoard training dashboard
 
-Lab 2 defines `ENABLE_TENSORBOARD = False`, so the default workshop run does
-not create TensorBoard event files. Set the flag to `True` before executing the
-training cell to record versioned runs under
-`artifacts/tensorboard/parakeet-nl/`. Each rerun receives a separate
-`version_N` directory.
+Lab 2 defines `ENABLE_TENSORBOARD = True`, so the default workshop run records
+a local metric history under `artifacts/tensorboard/parakeet-nl/`. Each rerun
+receives a separate `version_N` directory containing TensorBoard event data and
+small logger metadata such as `hparams.yaml`; nothing is uploaded to a remote
+service. Set the flag to `False` before executing the training cell if you do
+not want these files.
 
 Start the dashboard from the repository root so TensorBoard receives the
 absolute directory that Lab 2 writes to. A standard Brev source checkout uses
@@ -189,8 +190,8 @@ In the Brev Launchable Network settings, add a Secure Link named
 TensorBoard is serving. The dashboard can show the metrics emitted by the NeMo
 Lightning module, including training loss, learning rate, and validation WER.
 It cannot reconstruct runs completed while the flag was `False`. If the
-event-file check above prints nothing, set `ENABLE_TENSORBOARD = True`, rerun
-the experiment-controls cell, and rerun the training cell.
+event-file check above prints nothing, confirm `ENABLE_TENSORBOARD = True`,
+rerun the experiment-controls cell, and rerun the training cell.
 
 ## Access requirements
 
