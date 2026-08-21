@@ -26,11 +26,13 @@ own managed Python 3.12 runtime with `uv`, so Ubuntu's system Python is not used
 |---|---|---:|
 | 0. Start here | Verify Python 3.12, CUDA, disk, Docker, and the GPU profile | 10 min |
 | 1. Speech NIM | Deploy Parakeet CTC 0.6B and benchmark its supported API | 75-90 min |
-| 2. NVIDIA NeMo | Fine-tune on Dutch FLEURS, select by `val_wer`, test once, and save a complete `.nemo` model | 75-120 min |
+| 2. NVIDIA NeMo | Fine-tune on Dutch FLEURS, select by `val_wer`, report WER and CER, test once, and save a complete `.nemo` model | 75-120 min |
 | 3. NVIDIA Riva | Build an RMIR, serve locally through Riva gRPC, and map the same artifact to Riva on EKS | 60-90 min |
 
-The Dutch exercise demonstrates the customization workflow. A small Dutch
-subset and English guardrail are not evidence of production Dutch accuracy.
+The Dutch exercise demonstrates the customization workflow. WER remains the
+checkpoint-selection metric; normalized CER is reported alongside it as a
+secondary spelling-sensitive diagnostic. A small Dutch subset and English
+guardrail are not evidence of production Dutch accuracy.
 
 ## Why the tokenizer is reused
 
@@ -189,6 +191,9 @@ In the Brev Launchable Network settings, add a Secure Link named
 6006 as a public TCP port. Open that Secure Link after the command reports that
 TensorBoard is serving. The dashboard can show the metrics emitted by the NeMo
 Lightning module, including training loss, learning rate, and validation WER.
+The notebook computes normalized validation, test, and English-guardrail CER
+after transcription and includes it in `artifacts/lab2_run_summary.json`; CER
+is not used for checkpoint selection.
 It cannot reconstruct runs completed while the flag was `False`. If the
 event-file check above prints nothing, confirm `ENABLE_TENSORBOARD = True`,
 rerun the experiment-controls cell, and rerun the training cell.

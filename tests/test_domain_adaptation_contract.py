@@ -97,9 +97,16 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("'train_examples': len(train_records)", source)
         self.assertIn("'actual_examples': actual_examples", source)
         self.assertIn("'validation_wer_relative_improvement_percent'", source)
+        self.assertIn("'validation_cer_relative_improvement_percent'", source)
+        self.assertIn(
+            "'validation_cer_absolute_improvement_percentage_points'", source
+        )
         self.assertIn("'test_wer_relative_improvement_percent'", source)
         self.assertIn("'test_wer_absolute_improvement_percentage_points'", source)
+        self.assertIn("'test_cer_relative_improvement_percent'", source)
+        self.assertIn("'test_cer_absolute_improvement_percentage_points'", source)
         self.assertIn("'english_wer_absolute_change_percentage_points'", source)
+        self.assertIn("'english_cer_absolute_change_percentage_points'", source)
         self.assertIn("ENABLE_TENSORBOARD = True", source)
         self.assertIn(
             "from lightning.pytorch.loggers import TensorBoardLogger", source
