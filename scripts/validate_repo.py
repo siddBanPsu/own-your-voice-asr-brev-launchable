@@ -19,11 +19,13 @@ REQUIRED = [
     "scripts/stop_nim.sh",
     "scripts/build_riva_rmir.sh",
     "scripts/export_nemo_onnx.py",
+    "scripts/run_nemo_speech_container_finetune.py",
     "scripts/start_riva.sh",
     "scripts/stop_riva.sh",
     "labs/00_start_here.ipynb",
     "labs/01_deploy_and_benchmark.ipynb",
     "labs/02_domain_adaptation.ipynb",
+    "labs/02_containerized_domain_adaptation.ipynb",
     "labs/03_riva_deployment.ipynb",
     "deploy/eks/README.md",
     "deploy/eks/values-custom-rmir.yaml",
@@ -127,6 +129,45 @@ def main() -> int:
     assert "if ENABLE_TENSORBOARD:" in domain_source
     assert "logger=training_logger" in domain_source
     assert "artifacts' / 'tensorboard'" in domain_source
+
+    container_domain_payload = json.loads(
+        (ROOT / "labs" / "02_containerized_domain_adaptation.ipynb").read_text(
+            encoding="utf-8"
+        )
+    )
+    container_domain_source = "".join(
+        line
+        for cell in container_domain_payload["cells"]
+        for line in cell.get("source", [])
+    )
+    assert "NEMO_SPEECH_IMAGE = 'nvcr.io/nvidia/nemo-speech:26.07.00'" in container_domain_source
+    assert "PULL_IMAGE = True" in container_domain_source
+    assert "LANGUAGE_CONFIG = 'nl_nl'" in container_domain_source
+    assert "TRAIN_EXAMPLES = COMMON_TRAIN_EXAMPLES" in container_domain_source
+    assert "VALIDATION_EXAMPLES = COMMON_VALIDATION_EXAMPLES" in container_domain_source
+    assert "TEST_EXAMPLES = COMMON_TEST_EXAMPLES" in container_domain_source
+    assert "MAX_AUDIO_SECONDS = COMMON_MAX_AUDIO_SECONDS" in container_domain_source
+    assert "TRAINABLE_ENCODER_LAYERS = profile.trainable_encoder_layers" in container_domain_source
+    assert "ACCUMULATE_GRAD_BATCHES = profile.gradient_accumulation_steps" in container_domain_source
+    assert "run_nemo_speech_container_finetune.py" in container_domain_source
+    assert "--gpus', 'device=0'" in container_domain_source
+    assert "--password-stdin" in container_domain_source
+    assert "TemporaryDirectory(prefix='nemo-speech-docker-auth-')" in container_domain_source
+    assert "NGC_API_KEY" not in container_domain_source
+    assert "lab2_container_run_summary.json" in container_domain_source
+    container_kernelspec = container_domain_payload["metadata"]["kernelspec"]
+    assert container_kernelspec["name"] == "own-your-voice-asr"
+
+    container_worker_text = (
+        ROOT / "scripts" / "run_nemo_speech_container_finetune.py"
+    ).read_text(encoding="utf-8")
+    assert "ngc_nemo_speech_container" in container_worker_text
+    assert 'monitor="val_wer"' in container_worker_text
+    assert "configure_nemo_trainable_parameters" in container_worker_text
+    assert "baseline_validation_cer" in container_worker_text
+    assert "selected_test_cer" in container_worker_text
+    assert "english_cer_absolute_change_percentage_points" in container_worker_text
+    assert "parakeet-ctc-0.6b-nl-container.nemo" in container_worker_text
 
     riva_payload = json.loads(
         (ROOT / "labs" / "03_riva_deployment.ipynb").read_text(encoding="utf-8")
@@ -247,6 +288,10 @@ def main() -> int:
         raise RuntimeError("Python source compilation failed")
     if not compileall.compile_file(ROOT / "scripts" / "export_nemo_onnx.py", quiet=1):
         raise RuntimeError("ONNX export helper compilation failed")
+    if not compileall.compile_file(
+        ROOT / "scripts" / "run_nemo_speech_container_finetune.py", quiet=1
+    ):
+        raise RuntimeError("Containerized NeMo Speech worker compilation failed")
 
     print("Repository structure, Python 3.12, NeMo/Riva contracts, notebooks, shell syntax and Python syntax are valid.")
     return 0

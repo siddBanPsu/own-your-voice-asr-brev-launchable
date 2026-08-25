@@ -17,6 +17,8 @@ The workshop follows this NVIDIA stack boundary:
 - [Parakeet CTC 0.6B model and `.nemo` artifact](https://huggingface.co/nvidia/parakeet-ctc-0.6b)
 - [NeMo ASR checkpoints and model classes](https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/asr/all_chkpt.html)
 - [NeMo ASR configuration and fine-tuning](https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/asr/configs.html)
+- [Current NeMo Speech ASR fine-tuning guide](https://docs.nvidia.com/nemo/speech/nightly/asr/fine_tuning.html)
+- [NGC NeMo Speech framework container 26.07.00](https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/nemo-speech/26.07.00)
 - [NeMo installation](https://docs.nvidia.com/nemo-framework/user-guide/latest/installation.html)
 - [Google FLEURS dataset and official language splits](https://huggingface.co/datasets/google/fleurs)
 
@@ -25,6 +27,12 @@ keeps its training pattern and same-tokenizer recommendation, pins NeMo 2.7.3
 and `nemo2riva` 2.22.0 for Python 3.12, exports the Parakeet CTC checkpoint with
 ONNX opset 19 and `max_dim=1000`, and then uses the ASR NIM image's positional
 ServiceMaker CLI.
+
+The optional containerized Lab 2 path pins
+`nvcr.io/nvidia/nemo-speech:26.07.00`. NVIDIA describes this as a NeMo Speech
+framework container supporting Parakeet training and inference; it is not a
+NeMo Microservices Customizer endpoint. The notebook therefore launches a
+bounded local Docker training job rather than calling a remote fine-tuning API.
 
 ## Riva build, custom NIM deployment, and client
 

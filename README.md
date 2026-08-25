@@ -27,12 +27,31 @@ own managed Python 3.12 runtime with `uv`, so Ubuntu's system Python is not used
 | 0. Start here | Verify Python 3.12, CUDA, disk, Docker, and the GPU profile | 10 min |
 | 1. Speech NIM | Deploy Parakeet CTC 0.6B and benchmark its supported API | 75-90 min |
 | 2. NVIDIA NeMo | Fine-tune on Dutch FLEURS, select by `val_wer`, report WER and CER, test once, and save a complete `.nemo` model | 75-120 min |
+| 2C. NeMo Speech container (alternative) | Run the same bounded Lab 2 recipe inside the pinned NGC NeMo Speech container | 90-150 min including first image pull |
 | 3. NVIDIA Riva | Build an RMIR, serve locally through Riva gRPC, and map the same artifact to Riva on EKS | 60-90 min |
 
 The Dutch exercise demonstrates the customization workflow. WER remains the
 checkpoint-selection metric; normalized CER is reported alongside it as a
 secondary spelling-sensitive diagnostic. A small Dutch subset and English
 guardrail are not evidence of production Dutch accuracy.
+
+[`labs/02_containerized_domain_adaptation.ipynb`](labs/02_containerized_domain_adaptation.ipynb)
+is an alternative execution path, not an additional required lab. It prepares
+the same manifests in the host kernel, then runs model loading, baseline
+evaluation, fine-tuning, `val_wer` selection, WER/CER reporting, TensorBoard,
+and `.nemo` export inside the signed
+`nvcr.io/nvidia/nemo-speech:26.07.00` NGC container. It writes separate
+`*-container` artifacts so it cannot overwrite the standard Lab 2 result.
+
+The NeMo Speech image is a framework/training container, not an ASR
+fine-tuning microservice API. It simplifies CUDA/PyTorch/NeMo dependency
+packaging, but the host still needs Jupyter, dataset preparation dependencies,
+Docker, the NVIDIA Container Toolkit, a compatible driver, sufficient disk for
+the approximately 10.84 GB compressed image, and an NGC personal key for the
+registry pull. The container runtime version is recorded in
+`artifacts/lab2_container_run_summary.json`; do not attribute differences from
+standard Lab 2 to model quality unless the complete software and experiment
+controls match.
 
 ## Why the tokenizer is reused
 
@@ -219,7 +238,8 @@ NVIDIA AI Enterprise entitlement. Confirm the account can access the required
 containers before the workshop. The [NGC key documentation](https://docs.nvidia.com/ngc/latest/ngc-private-registry-user-guide.html#ngc-api-keys)
 also covers rotation, expiration, and registry authentication.
 
-Labs 1 and 3 ask for the key with hidden input. The scripts use a temporary
+Labs 1, 2C, and 3 ask for the key with hidden input. The scripts and container
+notebook use a temporary
 Docker configuration and do not add the key to the repository, notebook,
 Launchable defaults, or long-lived Docker configuration.
 
@@ -227,6 +247,11 @@ Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 uses
 `nemo2riva` 2.22.0 to export the `.nemo` checkpoint, the published Parakeet 0.6B
 ASR NIM 3.1.0 for ServiceMaker and serving, the Riva NIM Helm chart 1.1.0 on
 EKS, and the isolated Riva Python client 2.26.0.
+
+Alternative Lab 2C uses the separately versioned NGC NeMo Speech 26.07.00
+runtime. Functional parity in the repository does not imply bit-for-bit parity
+with the pip-pinned NeMo 2.7.3 environment; compare the recorded runtime fields
+before comparing metrics.
 
 ## Lab 3 deployment choices
 
