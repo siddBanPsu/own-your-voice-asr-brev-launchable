@@ -38,8 +38,8 @@ the English guardrail, and save `artifacts/parakeet-ctc-0.6b-nl.nemo`.
 If validation or test does not improve, report it. Do not tune after repeatedly
 viewing test results and do not manufacture an improvement for the workshop.
 
-Optional alternative Lab 2C uses
-`labs/02_containerized_domain_adaptation.ipynb` and the pinned NGC NeMo 24.12
+The optional after-workshop container exercise uses
+`labs/02_optional_containerized_domain_adaptation.ipynb` and the pinned NGC NeMo 24.12
 container. This CUDA 12.6-generation fallback is selected for the workshop
 host's 565 driver. The current NeMo Speech 26.07 image requires driver 595.58
 or later and will fail before NeMo starts on that host. Rehearse the fallback

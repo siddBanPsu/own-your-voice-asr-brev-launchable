@@ -146,7 +146,7 @@ class DomainAdaptationContractTests(unittest.TestCase):
     def test_containerized_notebook_preserves_lab_2_contract(self):
         notebook = json.loads(
             (
-                ROOT / "labs" / "02_containerized_domain_adaptation.ipynb"
+                ROOT / "labs" / "02_optional_containerized_domain_adaptation.ipynb"
             ).read_text(encoding="utf-8")
         )
         source = "".join(
