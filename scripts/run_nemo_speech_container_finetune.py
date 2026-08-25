@@ -100,7 +100,7 @@ def main() -> int:
     seed_everything(int(config["random_seed"]), workers=True)
     device = torch.cuda.get_device_properties(0)
     runtime = {
-        "execution_environment": "ngc_nemo_speech_container",
+        "execution_environment": "ngc_nemo_framework_container",
         "container_image": config["container_image"],
         "python": os.sys.version.split()[0],
         "nemo": getattr(nemo, "__version__", "unknown"),

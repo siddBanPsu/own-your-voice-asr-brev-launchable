@@ -39,12 +39,14 @@ If validation or test does not improve, report it. Do not tune after repeatedly
 viewing test results and do not manufacture an improvement for the workshop.
 
 Optional alternative Lab 2C uses
-`labs/02_containerized_domain_adaptation.ipynb` and the pinned NGC NeMo Speech
-26.07.00 container. Rehearse it separately: the first pull is approximately
-10.84 GB compressed, the host driver must support the container runtime, and
-the result records a different NeMo/PyTorch/CUDA software stack. It preserves
-the bounded data and evaluation contract but should not be presented as a
-bit-for-bit replacement until an end-to-end target-GPU rehearsal passes.
+`labs/02_containerized_domain_adaptation.ipynb` and the pinned NGC NeMo 24.12
+container. This CUDA 12.6-generation fallback is selected for the workshop
+host's 565 driver. The current NeMo Speech 26.07 image requires driver 595.58
+or later and will fail before NeMo starts on that host. Rehearse the fallback
+separately: it is a large pull and records a different NeMo/PyTorch/CUDA
+software stack. It preserves the bounded data and evaluation contract but
+should not be presented as a bit-for-bit replacement until an end-to-end
+target-GPU rehearsal passes.
 
 ### Lab 3: Riva build and deployment (60-90 minutes)
 

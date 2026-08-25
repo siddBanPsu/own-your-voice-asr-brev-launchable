@@ -19,6 +19,8 @@ The workshop follows this NVIDIA stack boundary:
 - [NeMo ASR configuration and fine-tuning](https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/asr/configs.html)
 - [Current NeMo Speech ASR fine-tuning guide](https://docs.nvidia.com/nemo/speech/nightly/asr/fine_tuning.html)
 - [NGC NeMo Speech framework container 26.07.00](https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/nemo-speech/26.07.00)
+- [Archived NeMo 24.12 consolidated container instructions](https://docs.nvidia.com/nemo-framework/user-guide/24.12/installation.html)
+- [CUDA major-version compatibility ranges](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html)
 - [NeMo installation](https://docs.nvidia.com/nemo-framework/user-guide/latest/installation.html)
 - [Google FLEURS dataset and official language splits](https://huggingface.co/datasets/google/fleurs)
 
@@ -28,9 +30,11 @@ and `nemo2riva` 2.22.0 for Python 3.12, exports the Parakeet CTC checkpoint with
 ONNX opset 19 and `max_dim=1000`, and then uses the ASR NIM image's positional
 ServiceMaker CLI.
 
-The optional containerized Lab 2 path pins
-`nvcr.io/nvidia/nemo-speech:26.07.00`. NVIDIA describes this as a NeMo Speech
-framework container supporting Parakeet training and inference; it is not a
+The optional containerized Lab 2 path pins `nvcr.io/nvidia/nemo:24.12`, the
+official consolidated ASR-capable NeMo container from the CUDA 12.6 generation,
+because the workshop host currently has driver 565.57.01. The current
+`nvcr.io/nvidia/nemo-speech:26.07.00` image supports Parakeet training but uses
+CUDA 13.2 and explicitly requires driver 595.58 or later. Neither image is a
 NeMo Microservices Customizer endpoint. The notebook therefore launches a
 bounded local Docker training job rather than calling a remote fine-tuning API.
 
