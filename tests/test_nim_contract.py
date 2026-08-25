@@ -25,6 +25,8 @@ class NimContractTests(unittest.TestCase):
             for line in cell.get("source", [])
         )
         self.assertIn("getpass", source)
+        self.assertIn("del nim_env['NGC_API_KEY']", source)
+        self.assertNotIn(".pop('NGC_API_KEY'", source)
         self.assertIn("/v1/audio/transcriptions", source)
         self.assertIn("scripts/stop_nim.sh", source)
 
