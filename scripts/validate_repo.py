@@ -25,7 +25,7 @@ REQUIRED = [
     "labs/00_start_here.ipynb",
     "labs/01_deploy_and_benchmark.ipynb",
     "labs/02_domain_adaptation.ipynb",
-    "labs/02_containerized_domain_adaptation.ipynb",
+    "labs/02_optional_containerized_domain_adaptation.ipynb",
     "labs/03_riva_deployment.ipynb",
     "deploy/eks/README.md",
     "deploy/eks/values-custom-rmir.yaml",
@@ -131,7 +131,7 @@ def main() -> int:
     assert "artifacts' / 'tensorboard'" in domain_source
 
     container_domain_payload = json.loads(
-        (ROOT / "labs" / "02_containerized_domain_adaptation.ipynb").read_text(
+        (ROOT / "labs" / "02_optional_containerized_domain_adaptation.ipynb").read_text(
             encoding="utf-8"
         )
     )
