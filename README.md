@@ -47,7 +47,7 @@ The NeMo image is a framework/training container, not an ASR fine-tuning
 microservice API. It simplifies CUDA/PyTorch/NeMo dependency
 packaging, but the host still needs Jupyter, dataset preparation dependencies,
 Docker, the NVIDIA Container Toolkit, a compatible driver, sufficient disk for
-sufficient disk for a multi-gigabyte image, and an NGC personal key for the
+a multi-gigabyte image, and an NGC personal key for the
 registry pull. The container runtime version is recorded in
 `artifacts/lab2_container_run_summary.json`; do not attribute differences from
 standard Lab 2 to model quality unless the complete software and experiment
@@ -293,6 +293,16 @@ Lab 3 also has an opt-in `SAVE_INTERMEDIATE_ONNX` control. Set it to `True` to
 retain `artifacts/onnx/parakeet-ctc-0.6b-nl.onnx` from the selected `.nemo`
 checkpoint. This is a standalone teaching and inspection artifact, adds another
 export pass, and is not consumed by the `.riva → RMIR` deployment path.
+
+The Lab 3 build requires at least 20 GB of free space by default because
+`nemo2riva`, the packaged `.riva` model, and the ServiceMaker RMIR can coexist
+during conversion. `scripts/build_riva_rmir.sh` checks this before exporting
+and uses `artifacts/riva/tmp` for temporary conversion files. Override the
+threshold only after measuring the target model with `RIVA_MIN_FREE_GB`.
+With the pinned `nemo2riva` toolchain, an ONNX Runtime warning that IR version
+11 exceeds the validator's supported IR version 10 is non-fatal when export
+continues into artifact packaging; a subsequent `No space left on device` is a
+separate fatal storage error.
 
 ## Create the Brev Launchable
 
