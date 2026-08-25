@@ -39,15 +39,15 @@ guardrail are not evidence of production Dutch accuracy.
 is an alternative execution path, not an additional required lab. It prepares
 the same manifests in the host kernel, then runs model loading, baseline
 evaluation, fine-tuning, `val_wer` selection, WER/CER reporting, TensorBoard,
-and `.nemo` export inside the signed
-`nvcr.io/nvidia/nemo-speech:26.07.00` NGC container. It writes separate
+and `.nemo` export inside the pinned `nvcr.io/nvidia/nemo:24.12` NGC
+container. It writes separate
 `*-container` artifacts so it cannot overwrite the standard Lab 2 result.
 
-The NeMo Speech image is a framework/training container, not an ASR
-fine-tuning microservice API. It simplifies CUDA/PyTorch/NeMo dependency
+The NeMo image is a framework/training container, not an ASR fine-tuning
+microservice API. It simplifies CUDA/PyTorch/NeMo dependency
 packaging, but the host still needs Jupyter, dataset preparation dependencies,
 Docker, the NVIDIA Container Toolkit, a compatible driver, sufficient disk for
-the approximately 10.84 GB compressed image, and an NGC personal key for the
+sufficient disk for a multi-gigabyte image, and an NGC personal key for the
 registry pull. The container runtime version is recorded in
 `artifacts/lab2_container_run_summary.json`; do not attribute differences from
 standard Lab 2 to model quality unless the complete software and experiment
@@ -248,10 +248,13 @@ Lab 2 uses the open Parakeet checkpoint with NVIDIA NeMo 2.7.3. Lab 3 uses
 ASR NIM 3.1.0 for ServiceMaker and serving, the Riva NIM Helm chart 1.1.0 on
 EKS, and the isolated Riva Python client 2.26.0.
 
-Alternative Lab 2C uses the separately versioned NGC NeMo Speech 26.07.00
-runtime. Functional parity in the repository does not imply bit-for-bit parity
-with the pip-pinned NeMo 2.7.3 environment; compare the recorded runtime fields
-before comparing metrics.
+Alternative Lab 2C defaults to the archived consolidated NGC NeMo 24.12
+runtime because its CUDA 12.6 generation supports the workshop host's
+565.57.01 driver. The current NeMo Speech 26.07.00 image uses CUDA 13.2 and
+requires driver 595.58 or later. The notebook checks the known requirement and
+runs a container CUDA smoke test before training. Functional parity does not
+imply bit-for-bit parity with the pip-pinned NeMo 2.7.3 environment; compare
+the recorded runtime fields before comparing metrics.
 
 ## Lab 3 deployment choices
 

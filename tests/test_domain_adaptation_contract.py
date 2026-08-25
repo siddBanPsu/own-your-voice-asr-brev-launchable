@@ -153,8 +153,14 @@ class DomainAdaptationContractTests(unittest.TestCase):
             line for cell in notebook["cells"] for line in cell.get("source", [])
         )
         self.assertIn(
-            "NEMO_SPEECH_IMAGE = 'nvcr.io/nvidia/nemo-speech:26.07.00'", source
+            "NEMO_CONTAINER_IMAGE = 'nvcr.io/nvidia/nemo:24.12'", source
         )
+        self.assertIn(
+            "LATEST_NEMO_SPEECH_IMAGE = 'nvcr.io/nvidia/nemo-speech:26.07.00'",
+            source,
+        )
+        self.assertIn("'nvcr.io/nvidia/nemo:24.12': '560.35.05'", source)
+        self.assertIn("'nvcr.io/nvidia/nemo-speech:26.07.00': '595.58'", source)
         self.assertIn("LANGUAGE_CONFIG = 'nl_nl'", source)
         self.assertIn("TRAIN_EXAMPLES = COMMON_TRAIN_EXAMPLES", source)
         self.assertIn("VALIDATION_EXAMPLES = COMMON_VALIDATION_EXAMPLES", source)
@@ -166,7 +172,10 @@ class DomainAdaptationContractTests(unittest.TestCase):
         )
         self.assertIn("run_nemo_speech_container_finetune.py", source)
         self.assertIn("--password-stdin", source)
-        self.assertIn("TemporaryDirectory(prefix='nemo-speech-docker-auth-')", source)
+        self.assertIn("TemporaryDirectory(prefix='nemo-container-docker-auth-')", source)
+        self.assertIn("cuda_smoke_command", source)
+        self.assertIn("nemo.collections.asr as nemo_asr", source)
+        self.assertIn("assert torch.cuda.is_available()", source)
         self.assertNotIn("NGC_API_KEY", source)
         self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-asr")
 

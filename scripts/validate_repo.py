@@ -140,7 +140,10 @@ def main() -> int:
         for cell in container_domain_payload["cells"]
         for line in cell.get("source", [])
     )
-    assert "NEMO_SPEECH_IMAGE = 'nvcr.io/nvidia/nemo-speech:26.07.00'" in container_domain_source
+    assert "NEMO_CONTAINER_IMAGE = 'nvcr.io/nvidia/nemo:24.12'" in container_domain_source
+    assert "LATEST_NEMO_SPEECH_IMAGE = 'nvcr.io/nvidia/nemo-speech:26.07.00'" in container_domain_source
+    assert "'nvcr.io/nvidia/nemo:24.12': '560.35.05'" in container_domain_source
+    assert "'nvcr.io/nvidia/nemo-speech:26.07.00': '595.58'" in container_domain_source
     assert "PULL_IMAGE = True" in container_domain_source
     assert "LANGUAGE_CONFIG = 'nl_nl'" in container_domain_source
     assert "TRAIN_EXAMPLES = COMMON_TRAIN_EXAMPLES" in container_domain_source
@@ -152,7 +155,10 @@ def main() -> int:
     assert "run_nemo_speech_container_finetune.py" in container_domain_source
     assert "--gpus', 'device=0'" in container_domain_source
     assert "--password-stdin" in container_domain_source
-    assert "TemporaryDirectory(prefix='nemo-speech-docker-auth-')" in container_domain_source
+    assert "TemporaryDirectory(prefix='nemo-container-docker-auth-')" in container_domain_source
+    assert "cuda_smoke_command" in container_domain_source
+    assert "nemo.collections.asr as nemo_asr" in container_domain_source
+    assert "assert torch.cuda.is_available()" in container_domain_source
     assert "NGC_API_KEY" not in container_domain_source
     assert "lab2_container_run_summary.json" in container_domain_source
     container_kernelspec = container_domain_payload["metadata"]["kernelspec"]
@@ -161,7 +167,7 @@ def main() -> int:
     container_worker_text = (
         ROOT / "scripts" / "run_nemo_speech_container_finetune.py"
     ).read_text(encoding="utf-8")
-    assert "ngc_nemo_speech_container" in container_worker_text
+    assert "ngc_nemo_framework_container" in container_worker_text
     assert 'monitor="val_wer"' in container_worker_text
     assert "configure_nemo_trainable_parameters" in container_worker_text
     assert "baseline_validation_cer" in container_worker_text
