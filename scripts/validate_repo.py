@@ -159,6 +159,8 @@ def main() -> int:
     assert "cuda_smoke_command" in container_domain_source
     assert "nemo.collections.asr as nemo_asr" in container_domain_source
     assert "assert torch.cuda.is_available()" in container_domain_source
+    assert "PYTHONUNBUFFERED=1" in container_domain_source
+    assert "'python', '-u'" in container_domain_source
     assert "NGC_API_KEY" not in container_domain_source
     assert "lab2_container_run_summary.json" in container_domain_source
     container_kernelspec = container_domain_payload["metadata"]["kernelspec"]
@@ -168,6 +170,10 @@ def main() -> int:
         ROOT / "scripts" / "run_nemo_speech_container_finetune.py"
     ).read_text(encoding="utf-8")
     assert "ngc_nemo_framework_container" in container_worker_text
+    assert '"model_load_started"' in container_worker_text
+    assert '"baseline_validation_started"' in container_worker_text
+    assert '"training_started"' in container_worker_text
+    assert '"selected_test_complete"' in container_worker_text
     assert 'monitor="val_wer"' in container_worker_text
     assert "configure_nemo_trainable_parameters" in container_worker_text
     assert "baseline_validation_cer" in container_worker_text
@@ -190,8 +196,10 @@ def main() -> int:
     assert "localhost:50051" not in riva_source
     assert "CHECK_EKS_PREREQUISITES = False" in riva_source
     assert "SAVE_INTERMEDIATE_ONNX = False" in riva_source
+    assert "RIVA_MIN_FREE_GB = 20" in riva_source
     assert "artifacts' / 'onnx' / 'parakeet-ctc-0.6b-nl.onnx'" in riva_source
     assert "'SAVE_INTERMEDIATE_ONNX': '1' if SAVE_INTERMEDIATE_ONNX else '0'" in riva_source
+    assert "'RIVA_MIN_FREE_GB': str(RIVA_MIN_FREE_GB)" in riva_source
 
     riva_build_text = (ROOT / "scripts" / "build_riva_rmir.sh").read_text(
         encoding="utf-8"
@@ -204,6 +212,10 @@ def main() -> int:
     assert "NEMO_MODEL" in riva_build_text
     assert "model.riva" in riva_build_text
     assert 'ONNX_OPSET="${ONNX_OPSET:-19}"' in riva_build_text
+    assert 'RIVA_MIN_FREE_GB="${RIVA_MIN_FREE_GB:-20}"' in riva_build_text
+    assert 'RIVA_EXPORT_TMP_DIR="${RIVA_EXPORT_TMP_DIR:-${OUTPUT_DIR}/tmp}"' in riva_build_text
+    assert 'df -Pk "${OUTPUT_DIR}"' in riva_build_text
+    assert 'TMPDIR="${RIVA_EXPORT_TMP_DIR}"' in riva_build_text
     assert '--onnx-opset "${ONNX_OPSET}"' in riva_build_text
     assert "--max-dim 1000" in riva_build_text
     assert "speech_recognition" in riva_build_text

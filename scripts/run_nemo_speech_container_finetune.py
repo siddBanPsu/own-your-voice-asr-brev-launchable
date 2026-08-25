@@ -47,6 +47,11 @@ def _relative_improvement(baseline: float, selected: float) -> tuple[float, floa
     return absolute, relative
 
 
+def _status(phase: str, **details: Any) -> None:
+    """Emit an immediately visible progress record through Docker/Jupyter."""
+    print(json.dumps({"phase": phase, **details}, default=str), flush=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
@@ -57,6 +62,7 @@ def main() -> int:
     os.environ.setdefault("HF_HOME", str(root / ".cache" / "huggingface"))
     os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
+    _status("imports_started")
     import nemo
     import nemo.collections.asr as nemo_asr
     import torch
@@ -71,6 +77,7 @@ def main() -> int:
         nemo_tokenizer_coverage,
         read_nemo_manifest,
     )
+    _status("imports_complete")
 
     if not torch.cuda.is_available():
         raise RuntimeError(
@@ -96,6 +103,7 @@ def main() -> int:
     if not 0 < val_check_interval <= max_steps:
         raise ValueError("The validation interval must be within the bounded training run")
 
+    _status("cuda_initialization_started")
     precision = "bf16-mixed" if torch.cuda.is_bf16_supported() else "16-mixed"
     seed_everything(int(config["random_seed"]), workers=True)
     device = torch.cuda.get_device_properties(0)
@@ -114,11 +122,18 @@ def main() -> int:
         runtime["lightning"] = importlib.metadata.version("lightning")
     except importlib.metadata.PackageNotFoundError:
         runtime["lightning"] = "unknown"
-    print({"container_runtime": runtime})
+    _status("runtime_ready", **runtime)
 
+    _status(
+        "model_load_started",
+        model_id=config["model_id"],
+        hf_home=os.environ["HF_HOME"],
+        note="A first run may download several gigabytes before this phase completes.",
+    )
     model = nemo_asr.models.ASRModel.from_pretrained(
         config["model_id"], map_location="cuda"
     ).to("cuda")
+    _status("model_load_complete", model_class=type(model).__name__)
     transcript_rows = [
         row
         for split in ("train", "validation", "test")
@@ -127,17 +142,31 @@ def main() -> int:
     coverage = nemo_tokenizer_coverage(
         model.tokenizer, [row["text"] for row in transcript_rows]
     )
-    print({"model_class": type(model).__name__, "tokenizer_coverage": coverage})
+    _status("tokenizer_coverage_complete", tokenizer_coverage=coverage)
     if coverage["unknown_tokens"]:
         raise RuntimeError("Tokenizer coverage failed before container training.")
 
     model.eval()
+    _status("baseline_validation_started")
     baseline_validation = evaluate_nemo_manifest(
         model, manifests["validation"], eval_batch_size
     )
+    _status(
+        "baseline_validation_complete",
+        wer=baseline_validation["wer"],
+        cer=baseline_validation["cer"],
+    )
+    _status("baseline_test_started")
     baseline_test = evaluate_nemo_manifest(model, manifests["test"], eval_batch_size)
+    _status("baseline_test_complete", wer=baseline_test["wer"], cer=baseline_test["cer"])
+    _status("baseline_english_guardrail_started")
     baseline_english = evaluate_nemo_manifest(
         model, manifests["english"], eval_batch_size
+    )
+    _status(
+        "baseline_english_guardrail_complete",
+        wer=baseline_english["wer"],
+        cer=baseline_english["cer"],
     )
     print(
         {
@@ -226,8 +255,9 @@ def main() -> int:
             }
         )
     )
-    print({"trainable_parameters": parameter_summary})
+    _status("training_started", trainable_parameters=parameter_summary, max_steps=max_steps)
     trainer.fit(model)
+    _status("training_complete", best_checkpoint=checkpoint_callback.best_model_path)
 
     best_checkpoint = Path(checkpoint_callback.best_model_path)
     if not best_checkpoint.is_file():
@@ -237,13 +267,28 @@ def main() -> int:
     model = model.to("cuda").eval()
     nemo_artifact = root / "artifacts" / "parakeet-ctc-0.6b-nl-container.nemo"
     model.save_to(str(nemo_artifact))
+    _status("selected_checkpoint_restored", checkpoint=best_checkpoint, artifact=nemo_artifact)
 
+    _status("selected_validation_started")
     selected_validation = evaluate_nemo_manifest(
         model, manifests["validation"], eval_batch_size
     )
+    _status(
+        "selected_validation_complete",
+        wer=selected_validation["wer"],
+        cer=selected_validation["cer"],
+    )
+    _status("selected_test_started")
     selected_test = evaluate_nemo_manifest(model, manifests["test"], eval_batch_size)
+    _status("selected_test_complete", wer=selected_test["wer"], cer=selected_test["cer"])
+    _status("selected_english_guardrail_started")
     selected_english = evaluate_nemo_manifest(
         model, manifests["english"], eval_batch_size
+    )
+    _status(
+        "selected_english_guardrail_complete",
+        wer=selected_english["wer"],
+        cer=selected_english["cer"],
     )
     validation_wer_absolute, validation_wer_relative = _relative_improvement(
         baseline_validation["wer"], selected_validation["wer"]
@@ -315,7 +360,8 @@ def main() -> int:
     }
     summary_path = root / "artifacts" / "lab2_container_run_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(summary, indent=2))
+    _status("run_summary_written", summary_path=summary_path)
+    print(json.dumps(summary, indent=2), flush=True)
 
     changed = 0
     for reference, before, after in zip(
@@ -324,12 +370,15 @@ def main() -> int:
         selected_test["predictions"],
     ):
         if before != after:
-            print(f"REF:    {reference}\nBEFORE: {before}\nAFTER:  {after}\n")
+            print(f"REF:    {reference}\nBEFORE: {before}\nAFTER:  {after}\n", flush=True)
             changed += 1
         if changed == 5:
             break
     if changed == 0:
-        print("No held-out transcript changed; report this outcome without tuning on test.")
+        print(
+            "No held-out transcript changed; report this outcome without tuning on test.",
+            flush=True,
+        )
     return 0
 
 

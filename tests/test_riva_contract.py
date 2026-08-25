@@ -15,6 +15,11 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("nvcr.io/nim/nvidia/", script)
         self.assertIn("NEMO2RIVA_BIN", script)
         self.assertIn('ONNX_OPSET="${ONNX_OPSET:-19}"', script)
+        self.assertIn('RIVA_MIN_FREE_GB="${RIVA_MIN_FREE_GB:-20}"', script)
+        self.assertIn('RIVA_EXPORT_TMP_DIR="${RIVA_EXPORT_TMP_DIR:-${OUTPUT_DIR}/tmp}"', script)
+        self.assertIn('df -Pk "${OUTPUT_DIR}"', script)
+        self.assertIn('TMPDIR="${RIVA_EXPORT_TMP_DIR}"', script)
+        self.assertIn("docker system df", script)
         self.assertIn('--onnx-opset "${ONNX_OPSET}"', script)
         self.assertIn("--max-dim 1000", script)
         self.assertIn("--entrypoint riva-build", script)
@@ -74,11 +79,13 @@ class RivaContractTests(unittest.TestCase):
         self.assertIn("deploy' / 'eks'", source)
         self.assertIn("CHECK_EKS_PREREQUISITES = False", source)
         self.assertIn("SAVE_INTERMEDIATE_ONNX = False", source)
+        self.assertIn("RIVA_MIN_FREE_GB = 20", source)
         self.assertIn("artifacts' / 'onnx' / 'parakeet-ctc-0.6b-nl.onnx'", source)
         self.assertIn(
             "'SAVE_INTERMEDIATE_ONNX': '1' if SAVE_INTERMEDIATE_ONNX else '0'",
             source,
         )
+        self.assertIn("'RIVA_MIN_FREE_GB': str(RIVA_MIN_FREE_GB)", source)
         self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-riva")
         self.assertEqual(
             notebook["metadata"]["kernelspec"]["display_name"],

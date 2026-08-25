@@ -16,6 +16,8 @@ ASR_PYTHON="${ASR_PYTHON:-${HOME}/.venvs/own-your-voice-asr/bin/python}"
 SAVE_INTERMEDIATE_ONNX="${SAVE_INTERMEDIATE_ONNX:-0}"
 ONNX_MODEL="${ONNX_MODEL:-${ROOT_DIR}/artifacts/onnx/parakeet-ctc-0.6b-nl.onnx}"
 ONNX_OPSET="${ONNX_OPSET:-19}"
+RIVA_MIN_FREE_GB="${RIVA_MIN_FREE_GB:-20}"
+RIVA_EXPORT_TMP_DIR="${RIVA_EXPORT_TMP_DIR:-${OUTPUT_DIR}/tmp}"
 
 if [[ ! -f "${NEMO_MODEL}" ]]; then
   echo "NeMo model not found: ${NEMO_MODEL}" >&2
@@ -35,6 +37,28 @@ if [[ "${SAVE_INTERMEDIATE_ONNX}" != "0" && "${SAVE_INTERMEDIATE_ONNX}" != "1" ]
   echo "SAVE_INTERMEDIATE_ONNX must be 0 or 1; received ${SAVE_INTERMEDIATE_ONNX}." >&2
   exit 1
 fi
+if ! [[ "${RIVA_MIN_FREE_GB}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "RIVA_MIN_FREE_GB must be a positive integer; received ${RIVA_MIN_FREE_GB}." >&2
+  exit 1
+fi
+
+mkdir -p "${OUTPUT_DIR}" "${RIVA_EXPORT_TMP_DIR}"
+required_kb=$((RIVA_MIN_FREE_GB * 1024 * 1024))
+available_kb="$(df -Pk "${OUTPUT_DIR}" | awk 'NR == 2 {print $4}')"
+if [[ ! "${available_kb}" =~ ^[0-9]+$ ]]; then
+  echo "Could not determine free disk space for ${OUTPUT_DIR}." >&2
+  exit 1
+fi
+available_gb=$((available_kb / 1024 / 1024))
+echo "Riva build disk preflight: ${available_gb} GB free; ${RIVA_MIN_FREE_GB} GB required."
+if (( available_kb < required_kb )); then
+  echo "Insufficient disk space for NeMo -> .riva -> RMIR packaging." >&2
+  df -h "${OUTPUT_DIR}" >&2
+  echo "Inspect usage with: docker system df" >&2
+  echo "Inspect workshop files with: du -sh '${ROOT_DIR}/artifacts' '${HOME}/.cache/nim' '${HOME}/.cache/huggingface' 2>/dev/null" >&2
+  echo "Remove only confirmed-unused images or failed artifacts, then rerun Lab 3." >&2
+  exit 1
+fi
 
 if [[ "${SAVE_INTERMEDIATE_ONNX}" == "1" ]]; then
   if [[ ! -x "${ASR_PYTHON}" ]]; then
@@ -51,9 +75,8 @@ if [[ "${SAVE_INTERMEDIATE_ONNX}" == "1" ]]; then
   echo "Saved standalone ONNX artifact: ${ONNX_MODEL}"
 fi
 
-mkdir -p "${OUTPUT_DIR}"
 echo "Exporting ${NEMO_MODEL} to ${RIVA_MODEL}"
-CUDA_VISIBLE_DEVICES=0 "${NEMO2RIVA_BIN}" \
+TMPDIR="${RIVA_EXPORT_TMP_DIR}" CUDA_VISIBLE_DEVICES=0 "${NEMO2RIVA_BIN}" \
   --key "${MODEL_KEY}" \
   --onnx-opset "${ONNX_OPSET}" \
   --max-dim 1000 \

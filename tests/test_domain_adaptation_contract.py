@@ -176,6 +176,8 @@ class DomainAdaptationContractTests(unittest.TestCase):
         self.assertIn("cuda_smoke_command", source)
         self.assertIn("nemo.collections.asr as nemo_asr", source)
         self.assertIn("assert torch.cuda.is_available()", source)
+        self.assertIn("PYTHONUNBUFFERED=1", source)
+        self.assertIn("'python', '-u'", source)
         self.assertNotIn("NGC_API_KEY", source)
         self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-asr")
 
@@ -183,6 +185,9 @@ class DomainAdaptationContractTests(unittest.TestCase):
             ROOT / "scripts" / "run_nemo_speech_container_finetune.py"
         ).read_text(encoding="utf-8")
         self.assertIn('monitor="val_wer"', worker)
+        self.assertIn('"model_load_started"', worker)
+        self.assertIn('"training_started"', worker)
+        self.assertIn('"selected_test_complete"', worker)
         self.assertIn("configure_nemo_trainable_parameters", worker)
         self.assertIn("baseline_validation_cer", worker)
         self.assertIn("selected_test_cer", worker)
