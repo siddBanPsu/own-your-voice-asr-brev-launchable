@@ -86,6 +86,8 @@ class RivaContractTests(unittest.TestCase):
             source,
         )
         self.assertIn("'RIVA_MIN_FREE_GB': str(RIVA_MIN_FREE_GB)", source)
+        self.assertIn("del riva_env['NGC_API_KEY']", source)
+        self.assertNotIn(".pop('NGC_API_KEY'", source)
         self.assertEqual(notebook["metadata"]["kernelspec"]["name"], "own-your-voice-riva")
         self.assertEqual(
             notebook["metadata"]["kernelspec"]["display_name"],
